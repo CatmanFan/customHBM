@@ -11,3 +11,6 @@
 # Executables
 *.elf
 *.dol
+
+# Other files
+*.sfk
