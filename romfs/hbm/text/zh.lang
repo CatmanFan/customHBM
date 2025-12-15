@@ -1,0 +1,74 @@
+msgid "HOME Menu"
+msgstr "HOME菜单"
+
+msgid "Wii Menu"
+msgstr "Wii菜单"
+
+msgid "Reset"
+msgstr "重启"
+
+msgid "Operations Guide"
+msgstr "?"
+
+msgid "Close"
+msgstr "关闭"
+
+msgid "Wii Remote Settings"
+msgstr "Wii遥控器设置"
+
+msgid "Close Wii Remote Settings"
+msgstr "关闭Wii遥控器设置"
+
+msgid "Volume"
+msgstr "音量"
+
+msgid "Rumble"
+msgstr "振动"
+
+msgid "On"
+msgstr "开启"
+
+msgid "Off"
+msgstr "关闭"
+
+msgid "Connection"
+msgstr "连接"
+
+msgid "Reconnect"
+msgstr "重新连接"
+
+msgid "Simultaneously press ① and ②\non each Wii Remote in the\ndesired player order."
+msgstr "请按照您需要的连接顺序，\n同时按Wii遥控器上的\n①键和②键。"
+
+msgid "Disconnecting..."
+msgstr "正在断开连接……"
+
+msgid "Return to the Wii Menu?"
+msgstr "要返回Wii菜单吗?"
+
+msgid "Return to the Wii Menu?\n(Anything not saved will be lost.)"
+msgstr "要返回Wii菜单吗?\n(未保存的内容将会丢失)"
+
+msgid "Reset the software?"
+msgstr "要重启吗?"
+
+msgid "Reset the software?\n(Anything not saved will be lost.)"
+msgstr "要重启吗?\n(未保存的内容将会丢失)"
+
+msgid "Yes"
+msgstr "是"
+
+msgid "No"
+msgstr "否"
+
+msgid "P1"
+msgstr "1P"
+
+msgid "P2"
+msgstr "2P"
+
+msgid "P3"
+msgstr "3P"
+
+msgid "P4"
+msgstr "4P"

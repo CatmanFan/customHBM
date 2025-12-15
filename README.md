@@ -1,2 +1,8 @@
 # customHBM
-Wii Home Menu library
+Wii HOME Menu (HBM) library
+
+Originally a fork of [libhomemenu](https://github.com/TheProjecter/libhomemenu) by TheProjecter, this is aiming to be a recode continuing from where the previous library left at the time its development became inactive. Like the original, it is intended to be graphics-library independent, however it may behave differently based on the graphics backend used (libwiisprite, GRRLIB, native, etc.).
+
+It contains derived portions of code from the original libhomemenu (license unknown, original source code is attributed above) translated into C++, however the majority of code has been rewritten from scratch. The project also uses portions of code from [Tantric/dborth](https://github.com/dborth)'s [libwiigui](https://github.com/dborth/libwiigui) ([WiiBrew page](http://wiibrew.org/wiki/Libwiigui)), which is licensed under GNU GPL, as well as derived code of [GRRLIB](https://github.com/GRRLIB/GRRLIB)'s (licensed under MIT) TTF drawing functions. I have chosen to license this project under GNU GPL as it is also the same license used in Tantric/dborth's software (Snes9XGX, FCEUGX, VBAGX, WiiMC, ...) as well as in [WiiSXRX](https://github.com/niuus/WiiSXRX) (as GPL-3.0) and [Not64](https://github.com/extremscorner/not64) (as GPL-2.0).
+
+This library uses the original Nintendo Wii Menu sounds (ripped using Dolphin to account for the reverb filter) and fonts (designed by Fontworks). It also makes use of [PNGU](https://wiibrew.org/wiki/PNGU) for rendering the images included, and FreeTypeGX to render the aforementioned fonts.

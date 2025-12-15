@@ -1,0 +1,74 @@
+msgid "HOME Menu"
+msgstr "HOME Menüsü"
+
+msgid "Wii Menu"
+msgstr "Wii Menüsü"
+
+msgid "Reset"
+msgstr "Tekrar Başlat"
+
+msgid "Operations Guide"
+msgstr "Manuel"
+
+msgid "Close"
+msgstr "Kapat"
+
+msgid "Wii Remote Settings"
+msgstr "Wii Remote Ayarları"
+
+msgid "Close Wii Remote Settings"
+msgstr "HOME Menüsüne Dön"
+
+msgid "Volume"
+msgstr "Ses Düzeyi"
+
+msgid "Rumble"
+msgstr "Titreşim"
+
+msgid "On"
+msgstr "Açık"
+
+msgid "Off"
+msgstr "Kapalı"
+
+msgid "Connection"
+msgstr "Bağlama"
+
+msgid "Reconnect"
+msgstr "Tekrar Bağlan"
+
+msgid "Simultaneously press ① and ②\non each Wii Remote in the\ndesired player order."
+msgstr "..."
+
+msgid "Disconnecting..."
+msgstr "Bağlantısını kesiyor..."
+
+msgid "Return to the Wii Menu?"
+msgstr "Wii Menüsüne dönmek ister\nmisiniz?"
+
+msgid "Return to the Wii Menu?\n(Anything not saved will be lost.)"
+msgstr "Wii Menüsüne dönmek ister\nmisiniz?"
+
+msgid "Reset the software?"
+msgstr "Yazılımı tekrar başlatmak\nister misiniz?"
+
+msgid "Reset the software?\n(Anything not saved will be lost.)"
+msgstr "Yazılımı tekrar başlatmak\nister misiniz?"
+
+msgid "Yes"
+msgstr "Evet"
+
+msgid "No"
+msgstr "Hayır"
+
+msgid "P1"
+msgstr "O1"
+
+msgid "P2"
+msgstr "O2"
+
+msgid "P3"
+msgstr "O3"
+
+msgid "P4"
+msgstr "O4"
