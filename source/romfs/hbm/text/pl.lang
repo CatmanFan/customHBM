@@ -1,0 +1,74 @@
+msgid "HOME Menu"
+msgstr "Menu HOME"
+
+msgid "Wii Menu"
+msgstr "Menu Wii"
+
+msgid "Reset"
+msgstr "Zresetuj"
+
+msgid "Operations Guide"
+msgstr "Przewodnik"
+
+msgid "Close"
+msgstr "Zamknij"
+
+msgid "Wii Remote Settings"
+msgstr "Ustawienia kontrolera Wii Remote"
+
+msgid "Close Wii Remote Settings"
+msgstr "Powrót do menu HOME"
+
+msgid "Volume"
+msgstr "Głośność"
+
+msgid "Rumble"
+msgstr "Wibracja"
+
+msgid "On"
+msgstr "Włącz"
+
+msgid "Off"
+msgstr "Wyłącz"
+
+msgid "Connection"
+msgstr "Połączenie"
+
+msgid "Reconnect"
+msgstr "Zmień kolejność"
+
+msgid "Simultaneously press ① and ②\non each Wii Remote in the\ndesired player order."
+msgstr ""
+
+msgid "Disconnecting..."
+msgstr "Rozłączanie..."
+
+msgid "Return to the Wii Menu?"
+msgstr "Powrót do menu Wii?"
+
+msgid "Return to the Wii Menu?\n(Anything not saved will be lost.)"
+msgstr "Powrót do menu Wii?\nWszystkie niezapisane dane\nzostaną utracone."
+
+msgid "Reset the software?"
+msgstr "Zresetować oprogramowanie?"
+
+msgid "Reset the software?\n(Anything not saved will be lost.)"
+msgstr "Zresetować oprogramowanie?\nWszystkie niezapisane dane\nzostaną utracone."
+
+msgid "Yes"
+msgstr "Tak"
+
+msgid "No"
+msgstr "Anuluj"
+
+msgid "P1"
+msgstr "G1"
+
+msgid "P2"
+msgstr "G2"
+
+msgid "P3"
+msgstr "G3"
+
+msgid "P4"
+msgstr "G4"

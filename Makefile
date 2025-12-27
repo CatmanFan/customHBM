@@ -10,52 +10,46 @@ endif
 include $(DEVKITPPC)/wii_rules
 # include $(DEVKITPRO)/libogc2/wii_rules
 
+# export	FREETYPE_CFLAGS 	:=	`$(DEVKITPRO)/portlibs/ppc/bin/powerpc-eabi-pkg-config --cflags freetype2`
+# export	FREETYPE_LIBS	:=	`$(DEVKITPRO)/portlibs/ppc/bin/powerpc-eabi-pkg-config --libs freetype2`
+# export	FREETYPE_INCLUDE	:=	$(PORTLIBS)/include/freetype2
+
 #---------------------------------------------------------------------------------
 # TARGET is the name of the output
 # BUILD is the directory where object files & intermediate files will be placed
 # SOURCES is a list of directories containing source code
-# INCLUDES is a list of directories containing extra header files
-#---------------------------------------------------------------------------------
-TARGET		:=	$(notdir $(CURDIR))
-BUILD		:=	build
-SOURCES		:=	$(shell find source -type d)
-INCLUDES	:=	$(shell find source -type d)
-DATA		:=	data
-
-#---------------------------------------------------------------------------------
-# HBM
 # DATA is a list of directories containing data files
+# INCLUDES is a list of directories containing extra header files
 # ROMFS is a folder to generate app's romfs
 #---------------------------------------------------------------------------------
-SOURCES		+=	hbm/source hbm/source/utils/i18n
-INCLUDES	+=	hbm/source hbm/source/utils/i18n
-DATA		+=	hbm/bin hbm/bin/sfx
-ROMFS       :=  romfs
+TARGET		:=	hbm
+BUILD		:=	build
+INCLUDES	:=	include
+SOURCES		:=	source source/classes
+DATA		:=	source/png source/sfx
+ROMFS       :=  source/romfs
+INSTALL		:=	$(DEVKITPRO)/portlibs/wii
 
 #---------------------------------------------------------------------------------
 # options for code generation
 #---------------------------------------------------------------------------------
 
-# -mrvl
-CFLAGS	= -g -O2 -mrvl -Wall $(MACHDEP) $(INCLUDE) -I$(DEVKITPPC)/local/include `freetype-config --cflags`
+CFLAGS	= -g -O2 -mrvl -Wall $(MACHDEP) $(INCLUDE) -I$(DEVKITPPC)/local/include `$(PREFIX)pkg-config --cflags freetype2`
 CXXFLAGS	=	$(CFLAGS)
 
-LDFLAGS	=	-g $(MACHDEP) -mrvl -Wl,-Map,$(notdir $@).map
+LDFLAGS	=	-g $(MACHDEP) -Wl -mrvl,-Map,$(notdir $@).map
 
 #---------------------------------------------------------------------------------
 # any extra libraries we wish to link with the project
 #---------------------------------------------------------------------------------
-# LIBS    :=    -lwiisprite -lpng -lz -lfreetype -lfat
-# LIBS    :=    -lgrrlib -lpngu `$(PREFIX)pkg-config freetype2 libpng libjpeg --libs` -lfat
-LIBS    :=    -lwiisprite -lpng -lz -lfreetype -lgrrlib -lpngu `$(PREFIX)pkg-config freetype2 libpng libjpeg --libs` -lfat
-LIBS    +=    -lasnd
-LIBS    +=    -lwiiuse -lbte -logc -lm
+# LIBS    :=    -lfreetype `$(PREFIX)pkg-config freetype2 libpng --libs` -lasnd -lwiiuse -lbte -logc -lm
+LIBS    :=    -lfreetype `$(PREFIX)pkg-config freetype2 libpng --libs` -lpngu -lasnd -lwiiuse -lbte -logc -lm
 
 #---------------------------------------------------------------------------------
 # list of directories containing libraries, this must be the top level containing
 # include and lib
 #---------------------------------------------------------------------------------
-LIBDIRS	:= $(PORTLIBS)
+LIBDIRS	:= $(LIBOGC_LIB) $(PORTLIBS) $(PORTLIBS)/include/freetype2
 
 #---------------------------------------------------------------------------------
 # no real need to edit anything past this point unless you need to add additional
@@ -78,12 +72,8 @@ CFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.c)))
 CPPFILES	:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.cpp)))
 sFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.s)))
 SFILES		:=	$(foreach dir,$(SOURCES),$(notdir $(wildcard $(dir)/*.S)))
-BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.bin) \
-				$(wildcard $(dir)/*.jpg) \
-				$(wildcard $(dir)/*.png) \
-				$(wildcard $(dir)/*.ttf) \
-				$(wildcard $(dir)/*.pcm) \
-				$(wildcard $(dir)/*.lang)))
+BINFILES	:=	$(foreach dir,$(DATA),$(notdir $(wildcard $(dir)/*.png) \
+				$(wildcard $(dir)/*.pcm)))
 
 #---------------------------------------------------------------------------------
 # use CXX for linking C++ projects, CC for standard C
@@ -94,10 +84,9 @@ else
 	export LD	:=	$(CXX)
 endif
 
-export OFILES_BIN	:=	$(addsuffix .o,$(BINFILES))
-export OFILES_SOURCES := $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(sFILES:.s=.o) $(SFILES:.S=.o)
-export OFILES := $(OFILES_BIN) $(OFILES_SOURCES)
-
+export OFILES_SOURCES	:= $(CPPFILES:.cpp=.o) $(CFILES:.c=.o) $(sFILES:.s=.o) $(SFILES:.S=.o)
+export OFILES_BIN		:= $(addsuffix .o,$(BINFILES))
+export OFILES 			:= $(OFILES_BIN) $(OFILES_SOURCES)
 export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES)))
 
 #---------------------------------------------------------------------------------
@@ -106,14 +95,15 @@ export HFILES := $(addsuffix .h,$(subst .,_,$(BINFILES)))
 export INCLUDE	:=	$(foreach dir,$(INCLUDES), -iquote $(CURDIR)/$(dir)) \
 					$(foreach dir,$(LIBDIRS),-I$(dir)/include) \
 					-I$(CURDIR)/$(BUILD) \
-					-I$(LIBOGC_INC) -I$(PORTLIBS)/include/freetype2
+					-I$(LIBOGC_INC) \
+					-I$(FREETYPE_INCLUDE)
 
 #---------------------------------------------------------------------------------
 # build a list of library paths
 #---------------------------------------------------------------------------------
-export LIBPATHS	:= -L$(LIBOGC_LIB) $(foreach dir,$(LIBDIRS),-L$(dir)/lib)
+export LIBPATHS	:=	$(foreach dir,$(LIBDIRS),-L$(dir)/lib) \
+					-L$(LIBOGC_LIB)
 
-export OUTPUT	:=	$(CURDIR)/$(TARGET)
 .PHONY: $(BUILD) clean
 
 #---------------------------------------------------------------------------------
@@ -124,22 +114,30 @@ $(BUILD):
 #---------------------------------------------------------------------------------
 clean:
 	@echo clean ...
-	@rm -fr $(BUILD) $(OUTPUT).elf $(OUTPUT).dol
+	@rm -fr $(BUILD) lib $(OUTPUT).a $(TARGET).tar.bz2
+
+dist-bin: all
+	@echo packing HBM library
+	@[ -d lib ] || mkdir -p lib
+	@cp $(TARGET).a lib/lib$(TARGET).a
+	@tar --exclude=*~ -cjf $(TARGET).tar.bz2 include lib
+
+install: dist-bin
+	@echo installing HBM library to $(DESTDIR)$(INSTALL)
+	mkdir -p $(DESTDIR)$(INSTALL)
+	bzip2 -cd $(TARGET).tar.bz2 | tar -xf - -C $(DESTDIR)$(INSTALL)
+
+all:	build
 
 #---------------------------------------------------------------------------------
-run:
-	psoload $(TARGET).dol
-
-#---------------------------------------------------------------------------------
-reload:
-	psoload -r $(TARGET).dol
-
-
+%.a:
+	@echo linking to lib ... $(notdir $@)
+	@$(AR) -rc $@ $^
 #---------------------------------------------------------------------------------
 else
 
 #---------------------------------------------------------------------------------
-# LIBROMFS-OGC
+# REQUIRED FOR HBM (libromfs-ogc)
 #---------------------------------------------------------------------------------
 include $(PORTLIBS_PATH)/wii/share/romfs-ogc.mk
 CFLAGS		+=	$(ROMFS_CFLAGS)
@@ -153,23 +151,14 @@ DEPENDS	:=	$(OFILES:.o=.d)
 #---------------------------------------------------------------------------------
 # main targets
 #---------------------------------------------------------------------------------
-$(OUTPUT).dol: $(OUTPUT).elf
-$(OUTPUT).elf: $(OFILES)
-
+$(OUTPUT).a: $(OFILES)
+#---------------------------------------------------------------------------------
 $(OFILES_SOURCES) : $(HFILES)
 
 #---------------------------------------------------------------------------------
-# This rule links in binary data with the extensions: jpg png ttf pcm lang bin
+# This rule links in binary data with the extensions: png pcm
 #---------------------------------------------------------------------------------
-%.jpg.o %_jpg.h	:	%.jpg
-	@echo $(notdir $<)
-	$(bin2o)
-
 %.png.o %_png.h :	%.png
-	@echo $(notdir $<)
-	$(bin2o)
-
-%.ttf.o %_ttf.h	:	%.ttf
 	@echo $(notdir $<)
 	$(bin2o)
 
@@ -177,14 +166,9 @@ $(OFILES_SOURCES) : $(HFILES)
 	@echo $(notdir $<)
 	$(bin2o)
 
-%.lang.o :	%.lang
-	@echo $(notdir $<)
-	$(bin2o)
-	
-%.bin.o %_bin.h	:	%.bin
-	@echo $(notdir $<)
-	@$(bin2o)
-
+#---------------------------------------------------------------------------------
+# This rule links in binary data with the ROMFS data
+#---------------------------------------------------------------------------------
 $(ROMFS_TARGET):
 	@echo ROMFS $(notdir $@)
 	$(Q)tar --format=ustar -cvf romfs.tar -C $(CURDIR)/../$(ROMFS) .
