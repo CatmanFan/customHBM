@@ -22,6 +22,10 @@ class HBMDialog : public HBMElement {
 		void Show();
 		void UpdateText(char *Text, char *Button1, char *Button2);
 		void Hide();
+
+		void Block(bool value) {
+			this->Button2.Blocked = this->Button1.Blocked = value;
+		}
 };
 
 #endif

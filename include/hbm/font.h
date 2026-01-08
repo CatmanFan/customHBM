@@ -4,6 +4,7 @@
 void HBM_FontInit();
 void HBM_FontReload(int type);
 void HBM_FontUninit();
+int HBM_FontType();
 void HBM_DrawText(const char *string,
 					int x,
 					int y,

@@ -17,7 +17,7 @@ class HBMRomfsFile {
 
 		u8 *Data();
 		size_t Size();
-		void Load(const char *path);
+		bool Load(const char *path);
 		void Free();
 };
 

@@ -25,7 +25,7 @@ class HBMImage {
 		float Rotation;
 		float Scale;
 		bool Visible;
-		bool NoWidescreen;
+		bool FixedSize;
 
 		HBMImage();
 		~HBMImage();
