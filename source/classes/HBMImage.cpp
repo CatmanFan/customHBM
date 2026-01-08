@@ -19,74 +19,47 @@ void HBMImage::Draw(f32 xPos, f32 yPos)
 	h = this->Height;
 	x = (xPos + w/2) * HBM_Settings.ScaleX;
 	y = (yPos + h/2) * HBM_Settings.ScaleY;
-	scaleX = this->Scale * /* (this->NoWidescreen == true ? HBM_Settings.ScaleX * HBM_WIDESCREEN_RATIO : HBM_Settings.ScaleX) */ HBM_Settings.ScaleX;
+	scaleX = this->Scale * (this->FixedSize == true ? HBM_Settings.ScaleX * HBM_WIDESCREEN_RATIO : HBM_Settings.ScaleX);
 	scaleY = this->Scale * HBM_Settings.ScaleY;
+
+	GX_SetTevOp (GX_TEVSTAGE0, GX_MODULATE);
+	GX_SetVtxDesc (GX_VA_TEX0, GX_DIRECT);
 
 	GXTexObj _texObj;
 	GX_InitTexObj(&_texObj, (void*)this->Img, this->Width, this->Height, this->ImgFmt, GX_CLAMP, GX_CLAMP, GX_FALSE);
 	GX_LoadTexObj(&_texObj, GX_TEXMAP0);
+	GX_InvalidateTexAll();
 
-	#if (HBM_DRAW_METHOD == 1) /*** GRRLIB **/
-		GX_SetTevOp (GX_TEVSTAGE0, GX_MODULATE);
-		GX_SetVtxDesc (GX_VA_TEX0, GX_DIRECT);
+	Mtx m, m1, m2, mv;
+	guMtxIdentity(m1);
+	guMtxRotDeg(m2, 'z', this->Rotation);
+	guMtxConcat(m2, m1, m);
 
-		Mtx m, m1, m2, mv;
-		guMtxIdentity(m1);
-		guMtxRotDeg(m2, 'z', this->Rotation);
-		guMtxConcat(m2, m1, m);
+	guMtxScaleApply(m, m, scaleX, scaleY, 1.0); // Apply scale AFTER rotating to avoid distortion
+	guMtxTransApply(m, m, x, y, 0);
+	guMtxConcat(HBM_GXmodelView2D, m, mv);
+	GX_LoadPosMtxImm(mv, GX_PNMTX0);
 
-		guMtxScaleApply(m, m, scaleX, scaleY, 1.0); // Apply scale AFTER rotating to avoid distortion
-		guMtxTransApply(m, m, x, y, 0);
-		guMtxConcat(HBM_GXmodelView2D, m, mv);
-		GX_LoadPosMtxImm(mv, GX_PNMTX0);
+	GX_Begin(GX_QUADS, HBM_GX_VTXFMT, 4);
 
-		GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
-			GX_Position3f32(-w/2 + this->AnchorPointX, -h/2 + this->AnchorPointY, 0);
-			GX_Color4u8(this->R, this->G, this->B, this->A);
-			GX_TexCoord2f32(0, 0);
-			GX_Position3f32(w/2 + this->AnchorPointX, -h/2 + this->AnchorPointY, 0);
-			GX_Color4u8(this->R, this->G, this->B, this->A);
-			GX_TexCoord2f32(1, 0);
-			GX_Position3f32(w/2 + this->AnchorPointX, h/2 + this->AnchorPointY, 0);
-			GX_Color4u8(this->R, this->G, this->B, this->A);
-			GX_TexCoord2f32(1, 1);
-			GX_Position3f32(-w/2 + this->AnchorPointX, h/2 + this->AnchorPointY, 0);
-			GX_Color4u8(this->R, this->G, this->B, this->A);
-			GX_TexCoord2f32(0, 1);
-		GX_End();
-		GX_LoadPosMtxImm(HBM_GXmodelView2D, GX_PNMTX0);
+		GX_Position2f32(-w/2 + this->AnchorPointX, -h/2 + this->AnchorPointY);
+		GX_Color4u8(this->R, this->G, this->B, this->A);
+		GX_TexCoord2f32(0, 0);
+		GX_Position2f32(w/2 + this->AnchorPointX, -h/2 + this->AnchorPointY);
+		GX_Color4u8(this->R, this->G, this->B, this->A);
+		GX_TexCoord2f32(1, 0);
+		GX_Position2f32(w/2 + this->AnchorPointX, h/2 + this->AnchorPointY);
+		GX_Color4u8(this->R, this->G, this->B, this->A);
+		GX_TexCoord2f32(1, 1);
+		GX_Position2f32(-w/2 + this->AnchorPointX, h/2 + this->AnchorPointY);
+		GX_Color4u8(this->R, this->G, this->B, this->A);
+		GX_TexCoord2f32(0, 1);
 
-		GX_SetTevOp (GX_TEVSTAGE0, GX_PASSCLR);
-		GX_SetVtxDesc (GX_VA_TEX0, GX_NONE);
-	#endif
+	GX_End();
+	GX_LoadPosMtxImm(HBM_GXmodelView2D, GX_PNMTX0);
 
-	#if (HBM_DRAW_METHOD == 0) /*** Libwiisprite **/
-		Mtx m, m1, m2, mv;
-		guMtxIdentity(m1);
-		guMtxRotDeg(m2, 'z', this->Rotation);
-		guMtxConcat(m2, m1, m);
-
-		guMtxScaleApply(m, m, scaleX, scaleY, 1.0); // Apply scale AFTER rotating to avoid distortion
-		guMtxTransApply(m, m, x, y, 0);
-		guMtxConcat(HBM_GXmodelView2D, m, mv);
-		GX_LoadPosMtxImm(mv, GX_PNMTX0);
-
-		GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
-			GX_Position2f32(-w/2 + this->AnchorPointX, -h/2 + this->AnchorPointY);
-			GX_Color4u8(this->R, this->G, this->B, this->A);
-			GX_TexCoord2f32(0, 0);
-			GX_Position2f32(w/2 + this->AnchorPointX, -h/2 + this->AnchorPointY);
-			GX_Color4u8(this->R, this->G, this->B, this->A);
-			GX_TexCoord2f32(1, 0);
-			GX_Position2f32(w/2 + this->AnchorPointX, h/2 + this->AnchorPointY);
-			GX_Color4u8(this->R, this->G, this->B, this->A);
-			GX_TexCoord2f32(1, 1);
-			GX_Position2f32(-w/2 + this->AnchorPointX, h/2 + this->AnchorPointY);
-			GX_Color4u8(this->R, this->G, this->B, this->A);
-			GX_TexCoord2f32(0, 1);
-		GX_End();
-		GX_LoadPosMtxImm(HBM_GXmodelView2D, GX_PNMTX0);
-	#endif
+	GX_SetTevOp (GX_TEVSTAGE0, GX_PASSCLR);
+	GX_SetVtxDesc (GX_VA_TEX0, GX_NONE);
 }
 
 void HBMImage::Draw()
@@ -218,7 +191,7 @@ HBMImage::HBMImage() {
 	this->A = 255;
 	this->Rotation = 0;
 	this->Scale = 1;
-	this->NoWidescreen = false;
+	this->FixedSize = false;
 	this->Visible = true;
 }
 

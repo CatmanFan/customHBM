@@ -1,7 +1,7 @@
 #include "hbm.h"
 #include "hbm/extern.h"
 
-#define HBM_DIALOGBUTTON_NORMAL_SCALE 0.95F
+#define HBM_DIALOGBUTTON_NORMAL_SCALE 0.93F
 
 HBMDialogButton::HBMDialogButton() : HBMButton::HBMButton() {
 	// Load images
@@ -95,14 +95,23 @@ void HBMDialogButton::Update() {
 		case 2:
 			this->Scale = 1;
 
-			if (HBM_BUTTON_TIME_WAITING(0.050))
-				this->MaskOpacity = 1 * HBM_BUTTON_TIME_PROGRESS(0.050);
-			else if (HBM_BUTTON_TIME_WAITING(0.1667))
+			if (HBM_BUTTON_TIME_WAITING(0.033))
+				this->Scale = (1 - HBM_BUTTON_TIME_PROGRESS(0.033)) + (HBM_DIALOGBUTTON_NORMAL_SCALE * HBM_BUTTON_TIME_PROGRESS(0.033));
+			else if (HBM_BUTTON_TIME_WAITING(0.083)) {
+				// this->Scale = HBM_DIALOGBUTTON_NORMAL_SCALE;
+				this->Scale = (HBM_DIALOGBUTTON_NORMAL_SCALE * (1 - HBM_BUTTON_TIME_PROGRESS_PARTIAL(0.033, 0.133))) + HBM_BUTTON_TIME_PROGRESS_PARTIAL(0.033, 0.133);
+				this->MaskOpacity = 1 * HBM_BUTTON_TIME_PROGRESS_PARTIAL(0.033, 0.133);
+			} else if (HBM_BUTTON_TIME_WAITING(0.133)) {
+				this->Scale = 1;
 				this->MaskOpacity = 1;
-			else if (HBM_BUTTON_TIME_WAITING(0.250))
-				this->MaskOpacity = 1 * (1 - HBM_BUTTON_TIME_PROGRESS_PARTIAL(0.1667, 0.25));
+			} else if (HBM_BUTTON_TIME_WAITING(0.333)) {
+				// this->Scale = HBM_DIALOGBUTTON_NORMAL_SCALE;
+				this->Scale = (1 - HBM_BUTTON_TIME_PROGRESS_PARTIAL(0.133, 0.333)) + (HBM_DIALOGBUTTON_NORMAL_SCALE * HBM_BUTTON_TIME_PROGRESS_PARTIAL(0.133, 0.333));
+				this->MaskOpacity = 1 * (1 - HBM_BUTTON_TIME_PROGRESS_PARTIAL(0.133, 0.333));
+			}
 
-			if (!HBM_BUTTON_TIME_WAITING(0.2667) && this->Substatus == 0) {
+			if (!HBM_BUTTON_TIME_WAITING(0.333)) {
+				this->Scale = HBM_DIALOGBUTTON_NORMAL_SCALE;
 				this->MaskOpacity = 0;
 
 				if (this->Selected != NULL && !this->Cancel)
@@ -110,14 +119,9 @@ void HBMDialogButton::Update() {
 				else
 					Cancelling = true;
 
-				this->Substatus = 1;
-			}
-
-			if (!HBM_BUTTON_TIME_WAITING(0.6667)) {
-				HBM_BUTTON_TIME_RESET
+				HBM_BUTTON_TIME_CLEAR
 				if (HBM_Settings.InteractionLayer == HBM_INTERACTION_DIALOGBUTTON)
 					HBM_Settings.InteractionLayer = HBM_INTERACTION_DIALOG;
-				this->Substatus = 0;
 				this->Status = 0;
 			}
 			break;

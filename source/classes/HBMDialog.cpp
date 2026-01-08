@@ -2,7 +2,7 @@
 #include "hbm/extern.h"
 
 #define HBM_DIALOG_TRANSITION_TIME 0.390F
-#define HBM_DIALOG_TRANSITION_POSITION -600
+#define HBM_DIALOG_TRANSITION_POSITION 600
 #define HBM_DIALOG_TRANSITION_PROGRESS (this->Status == 2 ? 1 - this->Transition : this->Transition)
 
 #define HBM_DIALOG_X (HBM_Settings.Widescreen ? 161 : 48)
@@ -30,8 +30,8 @@ void HBMDialog::Draw() {
 		(
 			/* text */		this->Text,
 			/* X */			this->X + 256,
-			/* Y */			this->Y + 136,
-			/* size */		31,
+			/* Y */			this->Y + 131,
+			/* size */		28,
 			/* scaleX */	1.0,
 			/* scaleY */	1.0,
 			/* align */		HBM_TEXT_CENTER, HBM_TEXT_MIDDLE,

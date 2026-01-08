@@ -17,7 +17,7 @@ void HBMButton::DrawText() {
 		(
 			/* text */		this->Text,
 			/* X */			this->X + (this->Image.GetWidth() / 2),
-			/* Y */			this->Y + (this->Image.GetHeight() / 2.1),
+			/* Y */			this->Y + (this->Image.GetHeight() / (HBM_FontType() == 1 ? 2.25 : 2.1)),
 			/* size */		this->TextSize,
 			/* scaleX */	this->Scale,
 			/* scaleY */	this->Scale,
