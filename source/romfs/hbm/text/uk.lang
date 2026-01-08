@@ -37,7 +37,7 @@ msgstr "Порядок"
 msgid "Reconnect"
 msgstr "Змінити порядок"
 
-msgid "Simultaneously press ① and ②\non each Wii Remote in the\ndesired player order."
+msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
 msgstr ""
 
 msgid "Disconnecting..."
@@ -46,13 +46,13 @@ msgstr ""
 msgid "Return to the Wii Menu?"
 msgstr "Повернутися до меню Wii?"
 
-msgid "Return to the Wii Menu?\n(Anything not saved will be lost.)"
+msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
 msgstr "Повернутися до меню Wii?\n(Всі незбережені дані будуть втрачені.)"
 
 msgid "Reset the software?"
 msgstr "Перезавантажити програму?"
 
-msgid "Reset the software?\n(Anything not saved will be lost.)"
+msgid "Reset the software? (Anything not saved will be lost.)"
 msgstr "Перезавантажити програму?\n(Всі незбережені дані будуть втрачені.)"
 
 msgid "Yes"

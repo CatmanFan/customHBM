@@ -37,7 +37,7 @@ msgstr "Registrering"
 msgid "Reconnect"
 msgstr "Ändra ordningen"
 
-msgid "Simultaneously press ① and ②\non each Wii Remote in the\ndesired player order."
+msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
 msgstr "Tryck på ① och ②.\n(incomplete)"
 
 msgid "Disconnecting..."
@@ -46,13 +46,13 @@ msgstr "Avbryter registreringen..."
 msgid "Return to the Wii Menu?"
 msgstr "Återgå till Wii-menyn?"
 
-msgid "Return to the Wii Menu?\n(Anything not saved will be lost.)"
+msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
 msgstr "Återgå till Wii-menyn?\nData som inte sparats går\nförlorade."
 
 msgid "Reset the software?"
 msgstr "Starta om programmet?"
 
-msgid "Reset the software?\n(Anything not saved will be lost.)"
+msgid "Reset the software? (Anything not saved will be lost.)"
 msgstr "Starta om programmet?\nData som inte sparats går\nförlorade."
 
 msgid "Yes"

@@ -37,7 +37,7 @@ msgstr "Verbinding"
 msgid "Reconnect"
 msgstr "Opnieuw instellen"
 
-msgid "Simultaneously press ① and ②\non each Wii Remote in the\ndesired player order."
+msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
 msgstr "Druk tegelijk op ① en ② op\niedere Wii-afstandsbediening,\nin de gewenste spelervolgorde."
 
 msgid "Disconnecting..."
@@ -46,19 +46,19 @@ msgstr "Bezig met het verbreken\nvan de verbinding..."
 msgid "Return to the Wii Menu?"
 msgstr "Wil je terug naar het Wii-menu?"
 
-msgid "Return to the Wii Menu?\n(Anything not saved will be lost.)"
+msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
 msgstr "Wil je terug naar het\nWii-menu? Niet opgeslagen\ngegevens gaan verloren."
 
 msgid "Reset the software?"
 msgstr "Wil je terug naar het titelscherm?"
 
-msgid "Reset the software?\n(Anything not saved will be lost.)"
+msgid "Reset the software? (Anything not saved will be lost.)"
 msgstr "Wil je terug naar het\ntitelscherm? Niet opgeslagen\ngegevens gaan verloren."
 
 msgid "This will quit the game. Proceed?"
 msgstr "Hiermee verlaat je het spel.\nWil je dat?"
 
-msgid "This will quit the game. Proceed?\n(Anything not saved will be lost.)"
+msgid "This will quit the game. Proceed? (Anything not saved will be lost.)"
 msgstr "Hiermee verlaat je het spel.\nWil je dat? Niet opgeslagen\ngegevens gaan verloren."
 
 msgid "Yes"

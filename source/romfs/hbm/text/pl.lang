@@ -37,7 +37,7 @@ msgstr "Połączenie"
 msgid "Reconnect"
 msgstr "Zmień kolejność"
 
-msgid "Simultaneously press ① and ②\non each Wii Remote in the\ndesired player order."
+msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
 msgstr ""
 
 msgid "Disconnecting..."
@@ -46,13 +46,13 @@ msgstr "Rozłączanie..."
 msgid "Return to the Wii Menu?"
 msgstr "Powrót do menu Wii?"
 
-msgid "Return to the Wii Menu?\n(Anything not saved will be lost.)"
+msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
 msgstr "Powrót do menu Wii?\nWszystkie niezapisane dane\nzostaną utracone."
 
 msgid "Reset the software?"
 msgstr "Zresetować oprogramowanie?"
 
-msgid "Reset the software?\n(Anything not saved will be lost.)"
+msgid "Reset the software? (Anything not saved will be lost.)"
 msgstr "Zresetować oprogramowanie?\nWszystkie niezapisane dane\nzostaną utracone."
 
 msgid "Yes"

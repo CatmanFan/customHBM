@@ -37,7 +37,7 @@ msgstr "Conexão"
 msgid "Reconnect"
 msgstr "Mudar ordem"
 
-msgid "Simultaneously press ① and ②\non each Wii Remote in the\ndesired player order."
+msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
 msgstr "Para sincronizar, aperte\n① e ② em cada Wii Remote\nna ordem desejada."
 
 msgid "Disconnecting..."
@@ -46,13 +46,13 @@ msgstr "Dessincronizando..."
 msgid "Return to the Wii Menu?"
 msgstr "Retornar ao Menu de Wii?"
 
-msgid "Return to the Wii Menu?\n(Anything not saved will be lost.)"
+msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
 msgstr "Retornar ao Menu de Wii?\n(Todos os dados não salvos\nserão perdidos.)"
 
 msgid "Reset the software?"
 msgstr "Reiniciar o software?"
 
-msgid "Reset the software?\n(Anything not saved will be lost.)"
+msgid "Reset the software? (Anything not saved will be lost.)"
 msgstr "Reiniciar o software?\n(Todos os dados não salvos\nserão perdidos.)"
 
 msgid "Yes"

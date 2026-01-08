@@ -2,7 +2,7 @@ msgid "HOME Menu"
 msgstr "HOME 버튼 메뉴"
 
 msgid "Wii Menu"
-msgstr "Wii 메뉴로"
+msgstr "W i i 메뉴로"
 
 msgid "Reset"
 msgstr "리셋"
@@ -37,7 +37,7 @@ msgstr "접속"
 msgid "Reconnect"
 msgstr "재접속"
 
-msgid "Simultaneously press ① and ②\non each Wii Remote in the\ndesired player order."
+msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
 msgstr "먼저 접속할\nWii 리모컨부터\n차례대로 ① 버튼과\n② 버튼을 동시에\n눌러 주십시오."
 
 msgid "Disconnecting..."
@@ -46,13 +46,13 @@ msgstr "접속 해제 중…"
 msgid "Return to the Wii Menu?"
 msgstr "Wii 메뉴로 돌아가시겠습니까?"
 
-msgid "Return to the Wii Menu?\n(Anything not saved will be lost.)"
+msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
 msgstr "Wii 메뉴로 돌아가시겠습니까?\n(저장되지 않은 내용은 사라집니다)"
 
 msgid "Reset the software?"
 msgstr "리셋하시겠습니까?"
 
-msgid "Reset the software?\n(Anything not saved will be lost.)"
+msgid "Reset the software? (Anything not saved will be lost.)"
 msgstr "리셋하시겠습니까?\n(저장되지 않은 내용은 사라집니다)"
 
 msgid "Yes"

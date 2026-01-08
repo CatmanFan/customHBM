@@ -37,7 +37,7 @@ msgstr "Conexión"
 msgid "Reconnect"
 msgstr "Nueva conexión"
 
-msgid "Simultaneously press ① and ②\non each Wii Remote in the\ndesired player order."
+msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
 msgstr "Para realizar una nueva\nconexión, se deberán pulsar\na la vez los Botones ① y ②\nde cada mando de Wii en el\norden de jugadores deseado."
 
 msgid "Disconnecting..."
@@ -46,19 +46,19 @@ msgstr "Desconectando..."
 msgid "Return to the Wii Menu?"
 msgstr "¿Deseas volver al menú de Wii?"
 
-msgid "Return to the Wii Menu?\n(Anything not saved will be lost.)"
+msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
 msgstr "¿Deseas volver al menú de Wii?\nSe perderán los datos no guardados."
 
 msgid "Reset the software?"
 msgstr "¿Deseas reiniciar?"
 
-msgid "Reset the software?\n(Anything not saved will be lost.)"
+msgid "Reset the software? (Anything not saved will be lost.)"
 msgstr "¿Deseas reiniciar?\nSe perderán los datos\nno guardados."
 
 msgid "This will quit the game. Proceed?"
 msgstr "Vas a salir del juego.\n¿Deseas continuar?"
 
-msgid "This will quit the game. Proceed?\n(Anything not saved will be lost.)"
+msgid "This will quit the game. Proceed? (Anything not saved will be lost.)"
 msgstr "Vas a salir del juego.\n¿Deseas continuar?\nSe perderán los datos no guardados."
 
 msgid "Yes"
