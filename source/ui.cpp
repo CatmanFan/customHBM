@@ -23,10 +23,7 @@ static float HBM_backgroundOpacity = 0;
 static HBMElement *HBM_allElements[HBM_ELEMENT_COUNT];
 static HBMButtonMain HBM_wiiMenuButton, HBM_resetButton;
 static HBMDialog HBM_dialog;
-static HBMElement HBM_pointer1;
-static HBMElement HBM_pointer2;
-static HBMElement HBM_pointer3;
-static HBMElement HBM_pointer4;
+static HBMPointerImage HBM_pointer1, HBM_pointer2, HBM_pointer3, HBM_pointer4;
 
 static HBMImage HBM_noHomeIcon;
 
@@ -65,6 +62,7 @@ static bool HBM_TimeWait(f64 value)
 
 static void HBM_TriggerShutdown()
 {
+	HBM_dialog.Block(true);
 	HBM_ConsolePrintf("Exiting: 3 (Shutdown)");
 	if (HBM_initialized && (HBM_Settings.Status != HBM_INACTIVE && HBM_Settings.Status != HBM_BLOCKED) && HBM_exitType == 0)
 		HBM_exitType = 3;
@@ -72,6 +70,7 @@ static void HBM_TriggerShutdown()
 
 static void HBM_TriggerReset()
 {
+	HBM_dialog.Block(true);
 	HBM_ConsolePrintf("Exiting: 2 (Reset)");
 	if (HBM_initialized && (HBM_Settings.Status != HBM_INACTIVE && HBM_Settings.Status != HBM_BLOCKED) && HBM_exitType == 0)
 		HBM_exitType = 2;
@@ -79,6 +78,7 @@ static void HBM_TriggerReset()
 
 static void HBM_TriggerSystemMenu()
 {
+	HBM_dialog.Block(true);
 	HBM_ConsolePrintf("Exiting: 1 (System Menu)");
 	if (HBM_initialized && (HBM_Settings.Status != HBM_INACTIVE && HBM_Settings.Status != HBM_BLOCKED) && HBM_exitType == 0)
 		HBM_exitType = 1;
@@ -87,14 +87,22 @@ static void HBM_TriggerSystemMenu()
 static void HBM_PromptReset()
 {
 	HBM_dialog.Confirm = HBM_TriggerReset;
-	HBM_dialog.UpdateText((char *)HBM_gettextmsg("Reset the software?"), (char *)HBM_gettextmsg("Yes"), (char *)HBM_gettextmsg("No"));
+	HBM_dialog.UpdateText(
+		(char *)HBM_gettextmsg(HBM_Settings.Unsaved > 0 ? "Reset the software? (Anything not saved will be lost.)" : "Reset the software?"),
+		(char *)HBM_gettextmsg("Yes"),
+		(char *)HBM_gettextmsg("No")
+	);
 	HBM_dialog.Show();
 }
 
 static void HBM_PromptSystemMenu()
 {
 	HBM_dialog.Confirm = HBM_TriggerSystemMenu;
-	HBM_dialog.UpdateText((char *)HBM_gettextmsg("Return to the Wii Menu?"), (char *)HBM_gettextmsg("Yes"), (char *)HBM_gettextmsg("No"));
+	HBM_dialog.UpdateText(
+		(char *)HBM_gettextmsg(HBM_Settings.Unsaved > 1 ? "Return to the Wii Menu? (Anything not saved will be lost.)" : "Return to the Wii Menu?"),
+		(char *)HBM_gettextmsg("Yes"),
+		(char *)HBM_gettextmsg("No")
+	);
 	HBM_dialog.Show();
 }
 
@@ -138,7 +146,7 @@ static void HBM_elementPositions() {
 void HBM_SetWidescreen(bool value) {
 	HBM_Settings.Widescreen = value;
 	HBM_Settings.ScaleX = (f32)HBM_Settings.Width / 640;
-	HBM_Settings.ScaleY = 480 / (f32)HBM_Settings.Height;
+	HBM_Settings.ScaleY = 1 /* 480 / (f32)HBM_Settings.Height */;
 	// **********************
 	// FORCE SET TO 1
 	// HBM_Settings.ScaleX = HBM_Settings.ScaleY = 1;
@@ -156,67 +164,72 @@ void HBM_SetLanguage(int value) {
 			HBM_Settings.Language = value;
 	} else {
 		HBM_LoadLanguage(value);
-		HBM_FontReload(value == CONF_LANG_KOREAN ? 1 : 0);
 		HBM_Settings.Language = HBM_GetCurrentLanguage();
 
 		HBM_wiiMenuButton.Text = (char *)HBM_gettextmsg("Wii Menu");
 		HBM_resetButton.Text = (char *)HBM_gettextmsg("Reset");
 		HBM_dialog.UpdateText(
-			(char *)HBM_gettextmsg(HBM_dialog.Confirm == HBM_TriggerReset ? "Reset the software?" : "Return to the Wii Menu?"),
+			(char *)HBM_gettextmsg(HBM_dialog.Confirm == HBM_TriggerReset ? HBM_Settings.Unsaved > 0 ? "Reset the software? (Anything not saved will be lost.)" : "Reset the software?"
+																		  : HBM_Settings.Unsaved > 1 ? "Return to the Wii Menu? (Anything not saved will be lost.)" : "Return to the Wii Menu?"),
 			(char *)HBM_gettextmsg("Yes"),
 			(char *)HBM_gettextmsg("No")
 		);
 	}
 }
 
+void HBM_SetUnsaved(int value) {
+	if (value != HBM_Settings.Unsaved)
+		HBM_Settings.Unsaved = value;
+}
+
 /******************************************************
  *                MANAGEMENT FUNCTIONS                *
  ******************************************************/
 
-void HBM_Init(int width, int height)
+void HBM_Init(int width, int height, int host_TEVSTAGE0, int host_TEX0)
 {
+	if (HBM_initialized) return;
+
 	// LWP_CreateThread(&HBM_mainthread, HBM_Thread, NULL, NULL, 0, 70);
 	HBM_initialized = true;
 
 	HBM_Settings.Status = HBM_INACTIVE;
+	HBM_Settings.InteractionLayer = HBM_INTERACTION_MAIN;
+	HBM_Settings.ScaleY = HBM_Settings.ScaleX = 0;
+
 	HBM_Settings.Width = width;
-	HBM_Settings.Height = height;
+	HBM_Settings.Height = height == 576 ? 480 : height;
+
 	#ifdef HBM_FORCE_ASPECT_RATIO
 		#if (HBM_FORCE_ASPECT_RATIO == 1)
-		HBM_SetWidescreen(true);
+			HBM_SetWidescreen(true);
 		#else
-		HBM_SetWidescreen(false);
+			HBM_SetWidescreen(false);
 		#endif
 	#else
-	HBM_SetWidescreen(CONF_GetAspectRatio() == CONF_ASPECT_16_9);
+		HBM_SetWidescreen(CONF_GetAspectRatio() == CONF_ASPECT_16_9);
 	#endif
 	#ifdef HBM_LANGUAGE
-	HBM_Settings.Language = HBM_LANGUAGE;
+		HBM_Settings.Language = HBM_LANGUAGE;
 	#else
-	HBM_Settings.Language = -1;
+		HBM_Settings.Language = -1;
+	#endif
+	#ifdef HBM_UNSAVED
+		HBM_Settings.Unsaved = HBM_UNSAVED;
+	#else
+		HBM_Settings.Unsaved = 0;
 	#endif
 
-	HBM_RomfsInit();
-	HBM_SoundInit();
+	// Setup target vertex descriptor
+	GX_SetVtxAttrFmt(HBM_GX_VTXFMT, GX_VA_POS, GX_POS_XY, GX_F32, 0); // Positions given in 2 f32's (f32 x, f32 y)
+	GX_SetVtxAttrFmt(HBM_GX_VTXFMT, GX_VA_TEX0, GX_TEX_ST, GX_F32, 0); // Texture coordinates given in 2 f32's
+	GX_SetVtxAttrFmt(HBM_GX_VTXFMT, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
 
-    // Setup the vertex descriptor
-    /*GX_ClearVtxDesc();      // clear all the vertex descriptors
-    GX_InvVtxCache();       // Invalidate the vertex cache
-    GX_InvalidateTexAll();  // Invalidate all textures
+	// GX compatibility mode
+	HBM_Settings.Host_TEX0 = host_TEX0;
+	HBM_Settings.Host_TEVSTAGE0 = host_TEVSTAGE0;
 
-    GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_TEX0, GX_TEX_ST,   GX_F32, 0);
-    // Colour 0 is 8bit RGBA format
-    GX_SetVtxAttrFmt(GX_VTXFMT0, GX_VA_CLR0, GX_CLR_RGBA, GX_RGBA8, 0);
-    // GX_SetZMode(GX_FALSE, GX_LEQUAL, GX_TRUE);
-
-    GX_SetBlendMode(GX_BM_BLEND, GX_BL_SRCALPHA, GX_BL_INVSRCALPHA, GX_LO_CLEAR);
-    GX_SetAlphaCompare(GX_GREATER, 0, GX_AOP_AND, GX_ALWAYS, 0);
-    GX_SetAlphaUpdate(GX_TRUE);
-    GX_SetColorUpdate(GX_ENABLE);
-    GX_SetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
-    GX_SetTevOrder(GX_TEVSTAGE0, GX_TEXCOORD0, GX_TEXMAP0, GX_COLOR0A0);
-    GX_SetTexCoordGen(GX_TEXCOORD0, GX_TG_MTX2x4, GX_TG_TEX0, GX_IDENTITY);*/
-
+	// Setup 2D model view
 	guMtxIdentity(HBM_GXmodelView2D);
 	guMtxTransApply(HBM_GXmodelView2D, HBM_GXmodelView2D, 0.0F, 0.0F, -50.0F);
 	GX_LoadPosMtxImm(HBM_GXmodelView2D, GX_PNMTX0);
@@ -226,7 +239,7 @@ void HBM_Init(int width, int height)
 	HBM_background.LoadRaw(HBM_backgroundBuffer, width, height);
 	HBM_background.SetPosition(0, 0);
 	HBM_background.Visible = true;
-	// HBM_background.NoWidescreen = true;
+	HBM_background.FixedSize = true;
 
 	HBM_noHomeIcon.LoadPNG(&HBM_noHome_png, 52, 52);
 	HBM_noHomeIcon.SetPosition(50, /*42*/54);
@@ -243,16 +256,10 @@ void HBM_Init(int width, int height)
 	HBM_resetButton.Visible = true;
 
 	/** Pointers **/
-	HBM_pointer1.Image.LoadPNG(&HBM_cursor1_png, 44, 64);
-	HBM_pointer2.Image.LoadPNG(&HBM_cursor2_png, 64, 64);
-	HBM_pointer3.Image.LoadPNG(&HBM_cursor3_png, 64, 64);
-	HBM_pointer4.Image.LoadPNG(&HBM_cursor4_png, 64, 64);
-	HBM_pointer1.Image.SetAnchorPoint(9, 27);
-	HBM_pointer2.Image.SetAnchorPoint(9, 27);
-	HBM_pointer3.Image.SetAnchorPoint(9, 27);
-	HBM_pointer4.Image.SetAnchorPoint(9, 27);
-	HBM_pointer1.Visible = HBM_pointer2.Visible = HBM_pointer3.Visible = HBM_pointer4.Visible = false;
-	HBM_pointer1.Image.Scale = HBM_pointer2.Image.Scale = HBM_pointer3.Image.Scale = HBM_pointer4.Image.Scale = 0.92F;
+	HBM_pointer1.Load(1, NULL);
+	HBM_pointer2.Load(2, &HBM_pointer1);
+	HBM_pointer3.Load(3, &HBM_pointer1);
+	HBM_pointer4.Load(4, &HBM_pointer1);
 
 	/** Elements list **/
 	HBM_allElements[0] = &HBM_wiiMenuButton;
@@ -263,7 +270,10 @@ void HBM_Init(int width, int height)
 	HBM_allElements[28] = &HBM_pointer2;
 	HBM_allElements[29] = &HBM_pointer1;
 
+	// Initialize the remainder of the libraries
+	HBM_SoundInit();
 	HBM_ConsoleInit();
+	HBM_RomfsInit();
 	HBM_FontInit();
 	HBM_SetLanguage(HBM_Settings.Language);
 
@@ -275,6 +285,8 @@ void HBM_Init(int width, int height)
 
 void HBM_Uninit()
 {
+	if (!HBM_initialized) return;
+
 	HBM_FontUninit();
 	HBM_RomfsUninit();
 
@@ -282,6 +294,8 @@ void HBM_Uninit()
 		free(MEM_K1_TO_K0(HBM_backgroundBuffer));
 		HBM_backgroundBuffer = NULL;
 	}
+
+	HBM_initialized = false;
 }
 
 void HBM_ToggleUsage(bool value)
@@ -304,40 +318,37 @@ void HBM_DrawBlackQuad(int x, int y, int width, int height, float percentage, bo
 	float f[4][2] = {{x1, y1}, {x1 + x2, y1}, {x1 + x2, y1 + y2}, {x1, y1 + y2}};
 
 	// Turn off texturing, otherwise crash (taken from HomeMenu.c)
-	GX_SetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
-	GX_SetVtxDesc(GX_VA_TEX0, GX_NONE);
+	GX_SetTevOp (GX_TEVSTAGE0, GX_PASSCLR);
+	GX_SetVtxDesc (GX_VA_TEX0, GX_NONE);
 
-	GX_Begin(GX_TRIANGLEFAN, GX_VTXFMT0, 4);
+	GX_Begin(GX_TRIANGLEFAN, HBM_GX_VTXFMT, 4);
 	for (int i = 0; i < 4; i++) {
-
-	#if (HBM_DRAW_METHOD == 0) /*** Libwiisprite ***/
 		GX_Position2f32(f[i][0], f[i][1]);
-	#else
-		GX_Position3f32(f[i][0], f[i][1], 0);
-	#endif
-
-	#ifdef HBM_DEBUG
-		GX_Color4u8(0, 128, 0, lround((percentage > 1 ? 1 : percentage) * 255.0F));
-	#else
-		GX_Color4u8(0,  0,  0, lround((percentage > 1 ? 1 : percentage) * 255.0F));
-	#endif
+		#ifdef HBM_DEBUG
+			GX_Color4u8(0, 128, 0, lround((percentage > 1 ? 1 : percentage) * 255.0F));
+		#else
+			GX_Color4u8(0,  0,  0, lround((percentage > 1 ? 1 : percentage) * 255.0F));
+		#endif
 	}
 	GX_End();
-
-	GX_SetTevOp(GX_TEVSTAGE0, GX_MODULATE);
-	GX_SetVtxDesc(GX_VA_TEX0, GX_DIRECT);
 }
 
 static void HBM_Draw()
 {
+	/** Failsafe **/
+	if (HBM_Settings.Host_TEVSTAGE0 < 0 || HBM_Settings.Host_TEX0 < 0) return;
+
+	// Background
 	HBM_background.Draw();
 	HBM_DrawBlackQuad(0, 0, HBM_Settings.Width, HBM_Settings.Height, HBM_backgroundOpacity, true);
 
+	// Elements
 	for (int i = 0; i < HBM_ELEMENT_COUNT; i++) {
 		if (HBM_allElements[i] != NULL)
 			HBM_allElements[i]->Draw();
 	}
 
+	// Pointer square
 	#ifdef HBM_DEBUG
 	if (HBMPointers[0].Status > 0) {
 		float x = (HBMPointers[0].X - 1.0F) * HBM_Settings.ScaleX,
@@ -346,22 +357,19 @@ static void HBM_Draw()
 			  y2 = (HBMPointers[0].Y + 1.0F) * HBM_Settings.ScaleY;
 		float f[4][2] = {{x, y}, {x2, y}, {x2, y2}, {x, y2}};
 
-		GX_Begin(GX_TRIANGLEFAN, GX_VTXFMT0, 4);
+		GX_Begin(GX_TRIANGLEFAN, HBM_GX_VTXFMT, 4);
 		for (int i = 0; i < 4; i++) {
-			#if (HBM_DRAW_METHOD == 0) /*** Libwiisprite ***/
-				GX_Position2f32(f[i][0], f[i][1]);
-			#else
-				GX_Position3f32(f[i][0], f[i][1], 0);
-			#endif
-
+			GX_Position2f32(f[i][0], f[i][1]);
 			GX_Color4u8(255, 0, 0, 255);
 		}
 		GX_End();
 	}
 	#endif
 
+	// Console
 	HBM_ConsoleDraw();
 
+	// Fade
 	if (HBM_exitFade > 0)
 		HBM_DrawBlackQuad(0, 0, HBM_Settings.Width, HBM_Settings.Height, HBM_exitFade, true);
 }
@@ -371,7 +379,6 @@ static void HBM_AfterDraw()
 	GX_SetZMode(GX_TRUE, GX_LEQUAL, GX_TRUE);
 	GX_SetColorUpdate(GX_TRUE);
 	GX_CopyDisp(fb[fb_i],GX_TRUE);
-
 	GX_DrawDone();
 
 	// Increment only if we are using more than one buffer
@@ -381,15 +388,6 @@ static void HBM_AfterDraw()
 	VIDEO_SetBlack(false);
 	VIDEO_Flush();
 	VIDEO_WaitVSync();
-
-	GX_InvalidateTexAll();
-
-	extern uint8_t *HBM_Glyphs[HBM_MAXGLYPHS];
-	for (int slot = 0; slot < HBM_MAXGLYPHS; slot++)
-		if (HBM_Glyphs[slot] != NULL) {
-			free(HBM_Glyphs[slot]);
-			HBM_Glyphs[slot] = NULL;
-		}
 }
 
 static void HBM_Update()
@@ -453,8 +451,15 @@ static void HBM_Update()
 
 			HBM_exitFade = HBM_timeElapsed / 0.5F;
 
-			if (HBM_exitFade > 0.15F && HBM_exitType >= 3)
-				HBM_SoundStop();
+			if (HBM_exitType < 3) {
+				for (int i = 0; i < MAX_SND_VOICES; i++) {
+					s32 vol = lround((float)MAX_VOLUME * (1.0F - (HBM_timeElapsed / 0.5F)));
+					ASND_ChangeVolumeVoice(i, vol, vol);
+				}
+			} else {
+				if (HBM_exitFade > 0.15F)
+					HBM_SoundStop();
+			}
 		}
 	}
 	else
@@ -494,6 +499,8 @@ static void HBM_Update()
 			**********************************************************/
 			case HBM_OPEN:
 				{
+					HBM_ConsolePrintf2("Resolution: %d x %d", HBM_Settings.Width, HBM_Settings.Height);
+
 					if (WPAD_ButtonsHeld(0) & (WPAD_BUTTON_PLUS))
 						HBM_Settings.ScaleX += 0.002F;
 					else if (WPAD_ButtonsHeld(0) & (WPAD_BUTTON_MINUS))
@@ -537,6 +544,20 @@ void HBM_Menu()
 	// Pre-show functions
 	if (HBM_isAllowed)
 	{
+		HBM_ConsolePrintf("HBM status: Opening");
+
+		// Init video
+		fb[0] = VIDEO_GetCurrentFramebuffer();
+		fb[1] = VIDEO_GetNextFramebuffer();
+
+		// Init GX
+		if (HBM_Settings.Host_TEVSTAGE0 >= 0 && HBM_Settings.Host_TEX0 >= 0) {
+			GX_SetTevOp (GX_TEVSTAGE0, GX_PASSCLR);
+			GX_SetVtxDesc (GX_VA_TEX0, GX_NONE);
+		}
+		// GX_SetScissorBoxOffset(0, 0);
+		// GX_SetScissor(0, 0, HBM_Settings.Width, HBM_Settings.Height);
+
 		// take a screenshot to be used as our background
 		GX_SetTexCopySrc(0, 0, HBM_Settings.Width, HBM_Settings.Height);
 		GX_SetTexCopyDst(HBM_Settings.Width, HBM_Settings.Height, GX_TF_RGBA8, GX_FALSE);
@@ -550,21 +571,12 @@ void HBM_Menu()
 		origResetCallback = SYS_SetResetCallback(HBM_HandleReset);
 		WPAD_SetPowerButtonCallback(HBM_HandleWPADShutdown);
 
-		// Init video
-		fb[0] = VIDEO_GetCurrentFramebuffer();
-		fb[1] = VIDEO_GetNextFramebuffer();
-		GX_SetScissorBoxOffset(0, 0);
-		GX_SetScissor(0, 0, HBM_Settings.Width, HBM_Settings.Height);
-
-		HBM_PointerInit();
-
-		HBM_ConsolePrintf("HBM status: Opening");
-
 		// Set initial animation values
 		HBM_timeElapsed = 0;
 		HBM_timeStopwatch = -1;
 
-		// Trigger loop
+		// Main loop
+		HBM_PointerInit();
 		HBM_Settings.Status = HBM_OPENING;
 		while (HBM_Settings.Status != HBM_INACTIVE)
 		{
@@ -576,7 +588,16 @@ void HBM_Menu()
 			HBM_AfterDraw();
 		}
 
+		// Exiting ...
 		// HBM_background.Free();
+
+		// Restore old GX mode
+		if (HBM_Settings.Host_TEVSTAGE0 >= 0 && HBM_Settings.Host_TEX0 >= 0) {
+			GX_SetTevOp(GX_TEVSTAGE0, HBM_Settings.Host_TEVSTAGE0);
+			GX_SetVtxDesc(GX_VA_TEX0, HBM_Settings.Host_TEX0);
+		}
+
+		// Restore old callbacks
 		if (origPowerCallback != NULL) SYS_SetPowerCallback(origPowerCallback);
 		if (origResetCallback != NULL) SYS_SetResetCallback(origResetCallback);
 	}

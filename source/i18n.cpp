@@ -241,7 +241,7 @@ static bool LoadLanguageROMFS(const char* string) {
     return true;
 }
 
-static int currentLanguage = -1;
+static int currentLanguage = -2;
 
 int HBM_GetCurrentLanguage() {
 	return currentLanguage;
@@ -251,7 +251,7 @@ bool HBM_LoadLanguage(int lang) {
 	if (lang != currentLanguage) {
 		bool isSystem = false;
 
-		if (lang > 17 || lang < -1) lang = -1;
+		if (lang > 18 || lang < -1) lang = -1;
 		currentLanguage = lang;
 
 		if (lang == -1) {
@@ -259,6 +259,8 @@ bool HBM_LoadLanguage(int lang) {
 			lang = CONF_GetLanguage();
 			HBM_ConsolePrintf("Language set to System");
 		}
+
+		HBM_FontReload(lang == CONF_LANG_KOREAN ? 1 : 0);
 
 		switch (lang) {
 			default:

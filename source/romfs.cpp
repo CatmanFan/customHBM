@@ -26,9 +26,9 @@ HBMRomfsFile::~HBMRomfsFile() {
 	this->Free();
 }
 
-void HBMRomfsFile::Load(const char *path) {
+bool HBMRomfsFile::Load(const char *path) {
 	if (path == 0 || path == NULL) {
-		return;
+		return false;
 	}
 
 	if (this->buffer) {
@@ -50,12 +50,15 @@ void HBMRomfsFile::Load(const char *path) {
 			fclose(file);
 
 			// HBM_ConsolePrintf("Loaded file: %s", path);
+			return true;
 		} else {
 			fclose(file);
 			// HBM_ConsolePrintf("Failed to get filesize: %s", path);
+			return false;
 		}
 	} else {
 		// HBM_ConsolePrintf("Failed to open file: %s", path);
+		return false;
 	}
 }
 

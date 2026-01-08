@@ -1,6 +1,9 @@
 #include "hbm.h"
 #include "hbm/extern.h"
 #include <wchar.h>
+#include <iostream>
+#include <map>
+#include <iterator>
 
 /*------------------------------------------------------------------------------
 Copyright (c) 2009-2025 The GRRLIB Team
@@ -27,14 +30,27 @@ THE SOFTWARE.
 #include <ft2build.h>
 #include FT_FREETYPE_H
 
+typedef struct HBM_ttfGlyph {
+	int width;
+	int rows;
+	int left;
+	int top;
+	int advance;
+	uint8_t *image;
+} HBM_Glyph;
+
 typedef struct HBM_ttfFont {
 	FT_Face /* void * */ face;     /**< A TTF face object. */
 	bool kerning;   /**< true whenever a face object contains kerning data that can be accessed with FT_Get_Kerning. */
 	float lineHeight;
+	bool serifGlyph;
+	float defaultSize;
 } HBM_Font;
 
 static FT_Library ftLibrary;			/* handle to library     */
 static HBM_Font *sansSerif, *serif;		/* handle to face object */
+static HBMRomfsFile sansSerifFile, serifFile;
+static std::map<wchar_t, HBM_Glyph> sansSerifGlyphs, serifGlyphs;
 
 static int fontType = -1;
 
@@ -42,50 +58,69 @@ static int fontType = -1;
  *                  GLYPH PROCESSING                  *
  ******************************************************/
 
-uint8_t *HBM_Glyphs[HBM_MAXGLYPHS];
+static HBM_Glyph* HBM_cacheGlyph(wchar_t Char, HBM_Font *myFont) {
+	std::map<wchar_t, HBM_Glyph> *myGlyphs = myFont->serifGlyph ? &serifGlyphs : &sansSerifGlyphs;
 
-static uint8_t *HBM_glyphToTexture(FT_Bitmap *bmp) {
-	int cw = bmp->width;
-	int ch = bmp->rows;
-	int tw = (cw+7)/8;
-	int th = (ch+3)/4;
+	// HBM_ConsolePrintf2("Cached fonts: %d", myGlyphs->size());
+	// Clear glyph list periodically so as to not run out of memory
+	if(myGlyphs->size() > 70) {
+		for(std::map<wchar_t, HBM_Glyph>::iterator i = myGlyphs->begin(), iEnd = myGlyphs->end(); i != iEnd; ++i)
+			if (i->second.image) free(i->second.image);
 
-	int tpitch = tw * 32;
-
-	int slot;
-	for (slot = 0; slot < HBM_MAXGLYPHS; slot++)
-		if (HBM_Glyphs[slot] == NULL) {
-			HBM_Glyphs[slot] = (uint8_t *)memalign(32, tw*th*32);
-			goto copy;
-		}
-
-	slot = HBM_MAXGLYPHS - 1;
-	if (HBM_Glyphs[slot] != NULL) {
-		free(HBM_Glyphs[slot]);
-		HBM_Glyphs[slot] = NULL;
-	}
-	HBM_Glyphs[slot] = (uint8_t *)memalign(32, tw*th*32);
-
-	copy:
-	memset(HBM_Glyphs[slot], 0, tw*th*32);
-
-	int x,y;
-	uint8_t *p = bmp->buffer;
-	for(y=0; y<ch; y++) {
-		uint8_t *lp = p;
-		int ty = y/4;
-		int py = y%4;
-		uint8_t *lpix = HBM_Glyphs[slot] + ty*tpitch + py*8;
-		for(x=0; x<cw; x++) {
-			int tx = x/8;
-			int px = x%8;
-			lpix[32*tx + px] = *lp++;
-		}
-		p += bmp->pitch;
+		myGlyphs->clear();
 	}
 
-	DCFlushRange(HBM_Glyphs[slot], 8*tw * 4*th);
-	return HBM_Glyphs[slot];
+	if (myGlyphs->find(Char) != myGlyphs->end())
+		return &((*myGlyphs)[Char]);
+
+	// Compress font size depending on screen resolution
+	FT_Set_Char_Size(myFont->face, 64 * myFont->defaultSize, 64 * myFont->defaultSize, 0, 0);
+
+	FT_UInt gIndex = FT_Get_Char_Index( myFont->face, Char );
+	if (!FT_Load_Glyph(myFont->face, gIndex, FT_LOAD_DEFAULT | FT_LOAD_RENDER)) {
+		if(myFont->face->glyph->format == FT_GLYPH_FORMAT_BITMAP) {
+			int cw = myFont->face->glyph->bitmap.width;
+			int ch = myFont->face->glyph->bitmap.rows;
+			int tw = (cw+7)/8;
+			int th = (ch+3)/4;
+
+			int tpitch = tw * 32;
+
+			(*myGlyphs)[Char] = (HBM_Glyph)
+			{
+				myFont->face->glyph->bitmap.width,
+				myFont->face->glyph->bitmap.rows,
+				myFont->face->glyph->bitmap_left,
+				myFont->face->glyph->bitmap_top,
+				myFont->face->glyph->advance.x,
+				NULL
+			};
+
+			// Convert image bitmap to GX-compatible format and allocate memory to it within the glyph struct
+			(*myGlyphs)[Char].image = (uint8_t *)memalign(32, tw*th*32);
+			memset((*myGlyphs)[Char].image, 0, tw*th*32);
+
+			int x,y;
+			uint8_t *p = myFont->face->glyph->bitmap.buffer;
+			for(y=0; y<ch; y++) {
+				uint8_t *lp = p;
+				int ty = y/4;
+				int py = y%4;
+				uint8_t *lpix = (*myGlyphs)[Char].image + ty*tpitch + py*8;
+				for(x=0; x<cw; x++) {
+					int tx = x/8;
+					int px = x%8;
+					lpix[32*tx + px] = *lp++;
+				}
+				p += myFont->face->glyph->bitmap.pitch;
+			}
+			DCFlushRange((*myGlyphs)[Char].image, 8*tw * 4*th);
+
+			return &((*myGlyphs)[Char]);
+		}
+	}
+
+	return NULL;
 }
 
 /******************************************************
@@ -138,8 +173,8 @@ static int HBM_TextStringMeasure(HBM_TextString *myText, HBM_Font *myFont, bool 
 	FT_GlyphSlot slot = Face->glyph;
 	FT_UInt previousGlyph = 0;
 
-	while (FT_Set_Char_Size(Face, 64 * myText->font_size, 64 * myText->font_size, 0, 0) != 0)
-		myText->font_size = 12;
+	// Compress font size depending on screen resolution
+	FT_Set_Char_Size(myFont->face, 64 * myText->font_size, 64 * myText->font_size, 0, 0);
 
 	bool searchSingleLine = line >= 0 && line < myText->lines;
 	int lineIndex = 0;
@@ -201,8 +236,8 @@ static void HBM_TextStringDraw (HBM_TextString *myText,
 	if (myFont == NULL || myText == NULL || myText->utf32 == NULL)
 		return;
 
-	FT_Face Face = (FT_Face)myFont->face;
-	FT_GlyphSlot slot = Face->glyph;
+	// FT_Face Face = (FT_Face)myFont->face;
+	// FT_GlyphSlot slot = Face->glyph;
 	FT_UInt previousGlyph = 0;
 	int penX = 0;
 	int penY = myText->font_size;
@@ -211,10 +246,6 @@ static void HBM_TextStringDraw (HBM_TextString *myText,
 	int height = HBM_TextStringMeasure(myText, myFont, true);
 	if (max_width > 0 && width > max_width)
 		myText->scale_x *= ((float)max_width / (float)width);
-
-	// Compress font size depending on screen resolution
-	while (FT_Set_Char_Size(Face, 64 * myText->font_size * 2, 64 * myText->font_size * 2, 0, 0) != 0)
-		myText->font_size = 12;
 
 	int curLine = 0;
 	int offsetX = myText->align_h == HBM_TEXT_CENTER ? HBM_TextStringMeasure(myText, myFont, false, curLine) / -2 : 0;
@@ -233,6 +264,8 @@ static void HBM_TextStringDraw (HBM_TextString *myText,
 			continue;
 		}
 
+		HBM_Glyph* glyphData = HBM_cacheGlyph(myText->utf32[i], myFont);
+
 		// Use FT_Load_Char?
 		const FT_UInt glyphIndex = FT_Get_Char_Index(myFont->face, myText->utf32[i]);
 
@@ -244,66 +277,44 @@ static void HBM_TextStringDraw (HBM_TextString *myText,
 		if (FT_Load_Glyph(myFont->face, glyphIndex, FT_LOAD_RENDER) != 0)
 			continue;
 
-		uint8_t *glyphTexture = HBM_glyphToTexture(&slot->bitmap);
-
 		/************************************/
+		GX_SetTevOp (GX_TEVSTAGE0, GX_MODULATE);
+		GX_SetVtxDesc (GX_VA_TEX0, GX_DIRECT);
+
 		guMtxIdentity(m);
-		guMtxScaleApply(m, m, myText->scale_x * HBM_Settings.ScaleX, myText->scale_y * HBM_Settings.ScaleY, 1.0);
+		guMtxScaleApply(m, m, myText->scale_x * (myText->font_size / myFont->defaultSize) * HBM_Settings.ScaleX, myText->scale_y * (myText->font_size / myFont->defaultSize) * HBM_Settings.ScaleY, 1.0);
 		guMtxTransApply(m, m, x * HBM_Settings.ScaleX, y * HBM_Settings.ScaleY, 0);
 		guMtxConcat(HBM_GXmodelView2D, m, mv);
 		GX_LoadPosMtxImm(mv, GX_PNMTX0);
 
 		GXTexObj _texObj;
-		GX_InitTexObj(&_texObj, (void*)glyphTexture, slot->bitmap.width, slot->bitmap.rows, GX_TF_I8, GX_CLAMP, GX_CLAMP, GX_FALSE);
+		GX_InitTexObj(&_texObj, (void*)glyphData->image, glyphData->width, glyphData->rows, GX_TF_I8, GX_CLAMP, GX_CLAMP, GX_FALSE);
 		GX_LoadTexObj(&_texObj, GX_TEXMAP0);
 
-		#if (HBM_DRAW_METHOD == 1) /*** GRRLIB **/
-			GX_SetTevOp (GX_TEVSTAGE0, GX_MODULATE);
-			GX_SetVtxDesc (GX_VA_TEX0, GX_DIRECT);
+		GX_Begin(GX_QUADS, HBM_GX_VTXFMT, 4);
+			GX_Position2f32(penX + glyphData->left + offsetX, penY - glyphData->top + offsetY);
+			GX_Color4u8(cR, cG, cB, cA);
+			GX_TexCoord2f32(0, 0);
+			GX_Position2f32(penX + glyphData->left + glyphData->width + offsetX, penY - glyphData->top + offsetY);
+			GX_Color4u8(cR, cG, cB, cA);
+			GX_TexCoord2f32(1, 0);
+			GX_Position2f32(penX + glyphData->left + glyphData->width + offsetX, penY - glyphData->top + glyphData->rows + offsetY);
+			GX_Color4u8(cR, cG, cB, cA);
+			GX_TexCoord2f32(1, 1);
+			GX_Position2f32(penX + glyphData->left + offsetX, penY - glyphData->top + glyphData->rows + offsetY);
+			GX_Color4u8(cR, cG, cB, cA);
+			GX_TexCoord2f32(0, 1);
+		GX_End();
+		GX_LoadPosMtxImm(HBM_GXmodelView2D, GX_PNMTX0);
 
-			GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
-				GX_Position3f32(penX + slot->bitmap_left + offsetX, penY - slot->bitmap_top + offsetY, 0);
-				GX_Color4u8(cR, cG, cB, cA);
-				GX_TexCoord2f32(0, 0);
-				GX_Position3f32(penX + slot->bitmap_left + slot->bitmap.width + offsetX, penY - slot->bitmap_top + offsetY, 0);
-				GX_Color4u8(cR, cG, cB, cA);
-				GX_TexCoord2f32(1, 0);
-				GX_Position3f32(penX + slot->bitmap_left + slot->bitmap.width + offsetX, penY - slot->bitmap_top + slot->bitmap.rows + offsetY, 0);
-				GX_Color4u8(cR, cG, cB, cA);
-				GX_TexCoord2f32(1, 1);
-				GX_Position3f32(penX + slot->bitmap_left + offsetX, penY - slot->bitmap_top + slot->bitmap.rows + offsetY, 0);
-				GX_Color4u8(cR, cG, cB, cA);
-				GX_TexCoord2f32(0, 1);
-			GX_End();
-			GX_LoadPosMtxImm(HBM_GXmodelView2D, GX_PNMTX0);
-
-			GX_SetTevOp (GX_TEVSTAGE0, GX_PASSCLR);
-			GX_SetVtxDesc (GX_VA_TEX0, GX_NONE);
-		#endif
-
-		#if (HBM_DRAW_METHOD == 0) /*** Libwiisprite **/
-			GX_Begin(GX_QUADS, GX_VTXFMT0, 4);
-				GX_Position2f32(penX + slot->bitmap_left + offsetX, penY - slot->bitmap_top + offsetY);
-				GX_Color4u8(cR, cG, cB, cA);
-				GX_TexCoord2f32(0, 0);
-				GX_Position2f32(penX + slot->bitmap_left + slot->bitmap.width + offsetX, penY - slot->bitmap_top + offsetY);
-				GX_Color4u8(cR, cG, cB, cA);
-				GX_TexCoord2f32(1, 0);
-				GX_Position2f32(penX + slot->bitmap_left + slot->bitmap.width + offsetX, penY - slot->bitmap_top + slot->bitmap.rows + offsetY);
-				GX_Color4u8(cR, cG, cB, cA);
-				GX_TexCoord2f32(1, 1);
-				GX_Position2f32(penX + slot->bitmap_left + offsetX, penY - slot->bitmap_top + slot->bitmap.rows + offsetY);
-				GX_Color4u8(cR, cG, cB, cA);
-				GX_TexCoord2f32(0, 1);
-			GX_End();
-			GX_LoadPosMtxImm(HBM_GXmodelView2D, GX_PNMTX0);
-		#endif
+		GX_SetTevOp (GX_TEVSTAGE0, GX_PASSCLR);
+		GX_SetVtxDesc (GX_VA_TEX0, GX_NONE);
 
 		/*
-		GX_SetTevOp(GX_TEVSTAGE0, GX_PASSCLR);
-		GX_SetVtxDesc(GX_VA_TEX0, GX_NONE);
+		GX_SetTevOp (GX_TEVSTAGE0, GX_PASSCLR);
+		GX_SetVtxDesc (GX_VA_TEX0, GX_NONE);
 
-		GX_Begin(GX_POINTS, GX_VTXFMT0, slot->bitmap.width * slot->bitmap.rows);
+		GX_Begin(GX_POINTS, HBM_GX_VTXFMT, slot->bitmap.width * slot->bitmap.rows);
 		for (FT_Int i = 0; i < slot->bitmap.width; i++)
 		{
 			for (FT_Int j = 0; j < slot->bitmap.rows; j++)
@@ -311,24 +322,18 @@ static void HBM_TextStringDraw (HBM_TextString *myText,
 				s16 alpha = slot->bitmap.buffer[ j * slot->bitmap.width + i ] - (0xFF - cA);
 				if (alpha < 0) alpha = 0;
 
-				#if (HBM_DRAW_METHOD == 0)
-					GX_Position2f32(penX + slot->bitmap_left + i + offsetX, penY - slot->bitmap_top + j + offsetY);
-				#else
-					GX_Position3f32(penX + slot->bitmap_left + i + offsetX, penY - slot->bitmap_top + j + offsetY, 0);
-				#endif
+				GX_Position2f32(penX + slot->bitmap_left + i + offsetX, penY - slot->bitmap_top + j + offsetY);
 				GX_Color4u8(cR, cG, cB, alpha);
 			}
 		}
 		GX_End();
 
-		GX_LoadPosMtxImm(HBM_GXmodelView2D, GX_PNMTX0);
-		GX_SetTevOp(GX_TEVSTAGE0, GX_MODULATE);
-		GX_SetVtxDesc(GX_VA_TEX0, GX_DIRECT);*/
+		GX_LoadPosMtxImm(HBM_GXmodelView2D, GX_PNMTX0);*/
 
 		// free(glyphTexture);
 		/************************************/
 
-		penX += slot->advance.x >> 6;
+		penX += glyphData->advance >> 6;
 		previousGlyph = glyphIndex;
 	}
 }
@@ -398,25 +403,29 @@ int HBM_MeasureText(const char *string, float size, bool use_serif, bool return_
  *                    FONT LOADING                    *
  ******************************************************/
 
-static HBM_Font* HBM_FontLoadTTF(const u8* file_base, s32 file_size)
+static HBM_Font* HBM_FontLoadTTF(u8 *file, size_t size)
 {
 	FT_Face Face;
-	if (FT_New_Memory_Face(ftLibrary, file_base, file_size, 0, &Face) != 0)
+	if (FT_New_Memory_Face(ftLibrary, file, size, 0, &Face) != 0)
 		return NULL;
 
 	HBM_Font* myFont = (HBM_Font*)malloc(sizeof(HBM_Font));
-	myFont->kerning = FT_HAS_KERNING(Face);
+	if (myFont == 0)
+		return NULL;
 
+	myFont->kerning = FT_HAS_KERNING(Face);
 	myFont->face = Face;
+
 	return myFont;
 }
 
 static void HBM_FontFreeTTF(HBM_Font *myFont)
 {
 	if (myFont != NULL) {
-		FT_Done_Face(myFont->face);
+
 		free(myFont);
 	}
+
 }
 
 /******************************************************
@@ -430,27 +439,39 @@ void HBM_FontInit()
 		return;
 }
 
-static HBMRomfsFile ttf_sansSerif;
-static HBMRomfsFile ttf_serif;
-
 void HBM_FontReload(int type)
 {
 	if (type != fontType) {
+		if(sansSerifGlyphs.size() > 0) {
+			for(std::map<wchar_t, HBM_Glyph>::iterator i = sansSerifGlyphs.begin(), iEnd = sansSerifGlyphs.end(); i != iEnd; ++i)
+				if (i->second.image) free(i->second.image);
+
+			sansSerifGlyphs.clear();
+		}
+
+		if(serifGlyphs.size() > 0) {
+			for(std::map<wchar_t, HBM_Glyph>::iterator i = serifGlyphs.begin(), iEnd = serifGlyphs.end(); i != iEnd; ++i)
+				if (i->second.image) free(i->second.image);
+
+			serifGlyphs.clear();
+		}
+
 		HBM_FontFreeTTF(sansSerif);
 		HBM_FontFreeTTF(serif);
 
 		// Load fonts
-		// sansSerif = HBM_FontLoadTTF(nintendo_NTLG_DB_002_ttf, nintendo_NTLG_DB_002_ttf_size);
-		// serif = HBM_FontLoadTTF(nintendo_NTLG_DB_002_ttf, nintendo_NTLG_DB_002_ttf_size);
-		// serif = HBM_FontLoadTTF(UtrilloProGrecoStd_ttf, UtrilloProGrecoStd_ttf_size);
+		sansSerifFile.Load(type == 1 ? "romfs:/hbm/ttf/KoreanDNRB.ttf" : "romfs:/hbm/ttf/nintendo_NTLG-DB_002.ttf");
+		serifFile.Load(type == 1 ? "romfs:/hbm/ttf/DXGothic.ttf" : "romfs:/hbm/ttf/UtrilloProGrecoStd.ttf");
+		sansSerif = HBM_FontLoadTTF(sansSerifFile.Data(), sansSerifFile.Size());
+		serif = HBM_FontLoadTTF(serifFile.Data(), serifFile.Size());
 
-		// Load fonts
-		ttf_sansSerif.Load("romfs:/hbm/ttf/nintendo_NTLG-DB_002.ttf");
-		ttf_serif.Load("romfs:/hbm/ttf/UtrilloProGrecoStd.ttf");
-		sansSerif = HBM_FontLoadTTF(ttf_sansSerif.Data(), ttf_sansSerif.Size());
-		serif = HBM_FontLoadTTF(ttf_serif.Data(), ttf_serif.Size());
+		sansSerif->serifGlyph = false;
+		serif->serifGlyph = true;
+		sansSerif->defaultSize = 26;
 		sansSerif->lineHeight = 0.95;
-		serif->lineHeight = 0.95;
+		serif->defaultSize = 28;
+		serif->lineHeight = type == 1 ? 1.4 : 1.25;
+
 		fontType = type;
 	}
 }
@@ -459,4 +480,9 @@ void HBM_FontUninit()
 {
 	HBM_FontFreeTTF(sansSerif);
 	HBM_FontFreeTTF(serif);
+}
+
+int HBM_FontType()
+{
+	return fontType;
 }
