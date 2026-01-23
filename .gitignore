@@ -7,6 +7,7 @@
 *.lo
 *.o
 *.obj
+*.romfs.o
 
 # Executables
 *.elf

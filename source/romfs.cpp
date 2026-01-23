@@ -1,13 +1,8 @@
 #include "hbm.h"
+
+#ifdef HBM_ENABLE_ROMFS
+
 #include <romfs-ogc.h>
-
-void HBM_RomfsInit() {
-	romfsInit();
-}
-
-void HBM_RomfsUninit() {
-	romfsExit();
-}
 
 HBMRomfsFile::HBMRomfsFile() {
 	this->size = 0;
@@ -15,7 +10,7 @@ HBMRomfsFile::HBMRomfsFile() {
 	this->path = NULL;
 }
 
-HBMRomfsFile::HBMRomfsFile(const char *path) {
+HBMRomfsFile::HBMRomfsFile(const char* path) {
 	this->size = 0;
 	this->buffer = NULL;
 	this->path = NULL;
@@ -26,7 +21,7 @@ HBMRomfsFile::~HBMRomfsFile() {
 	this->Free();
 }
 
-bool HBMRomfsFile::Load(const char *path) {
+bool HBMRomfsFile::Load(const char* path) {
 	if (path == 0 || path == NULL) {
 		return false;
 	}
@@ -53,11 +48,11 @@ bool HBMRomfsFile::Load(const char *path) {
 			return true;
 		} else {
 			fclose(file);
-			// HBM_ConsolePrintf("Failed to get filesize: %s", path);
+			HBM_ConsolePrintf("Failed to get filesize: %s", path);
 			return false;
 		}
 	} else {
-		// HBM_ConsolePrintf("Failed to open file: %s", path);
+		HBM_ConsolePrintf("Failed to open file: %s", path);
 		return false;
 	}
 }
@@ -78,4 +73,19 @@ u8 * HBMRomfsFile::Data() {
 
 size_t HBMRomfsFile::Size() {
 	return this->size;
+
+}
+
+#endif
+
+void HBM_RomfsInit() {
+#ifdef HBM_ENABLE_ROMFS
+	romfsInit();
+#endif
+}
+
+void HBM_RomfsUninit() {
+#ifdef HBM_ENABLE_ROMFS
+	romfsExit();
+#endif
 }

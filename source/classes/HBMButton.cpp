@@ -6,6 +6,7 @@ HBMButton::HBMButton() : HBMElement::HBMElement() {
 }
 
 HBMButton::~HBMButton() {
+	this->Mask.Free();
 	this->Shadow.Free();
 	this->Image.Free();
 }
@@ -27,7 +28,7 @@ void HBMButton::DrawText() {
 							(this->TextColor & 0x00FF0000) >> 16,
 							(this->TextColor & 0x0000FF00) >> 8,
 							this->Image.A,
-							(this->Image.GetWidth() - 40)
+			/* maxWidth */	this->TextWidth > 0 ? this->TextWidth : (this->Image.GetWidth() - 40)
 		);
 	}
 }
@@ -39,7 +40,8 @@ void HBMButton::Draw() {
 
 	// Draw mask
 	if (this->MaskOpacity > 0) {
-		this->Mask.Scale = this->Image.Scale;
+		this->Mask.ScaleX = this->Image.ScaleX;
+		this->Mask.ScaleY = this->Image.ScaleY;
 		this->Mask.A = lround(255 * this->MaskOpacity);
 		this->Mask.Draw(this->X + this->Image.GetX(), this->Y + this->Image.GetY());
 	}
@@ -49,10 +51,6 @@ void HBMButton::Draw() {
 
 void HBMButton::Update() {
 	// Your code here
-}
-
-f64 HBMButton::GetTime() {
-	return ((f64)ticks_to_millisecs(gettime()) / 1000.0F);
 }
 
 u8 HBMButton::GetStatus() {

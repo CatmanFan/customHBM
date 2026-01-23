@@ -134,7 +134,7 @@ static char * memfgets(char * dst, int maxlen, char * src)
 	return ++newline;
 }
 
-/* static bool LoadLanguage(char* langfile, size_t size) {
+static bool getLangFile(char* langfile, size_t size) {
     if (!langfile) {
         gettextCleanUp();
         return true;
@@ -184,62 +184,29 @@ static char * memfgets(char * dst, int maxlen, char * src)
 	}
 
     return true;
-} */
-
-static bool LoadLanguageROMFS(const char* string) {
-	HBMRomfsFile file(string);
-	char *langfile = (char *)file.Data();
-
-    if (!langfile) {
-        gettextCleanUp();
-        return true;
-    }
-
-    char line[200];
-    char* lastID = NULL;
-
-    gettextCleanUp();
-
-	while (langfile && langfile < langfile + file.Size()) {
-		langfile = memfgets(line, sizeof(line), langfile);
-		if (!langfile)
-			break;
-
-		// lines starting with # are comments
-		if (line[0] == '#')
-			continue;
-
-		if (strncmp(line, "msgid \"", 7) == 0) {
-			char *msgid, *end;
-			if (lastID) {
-				free(lastID);
-				lastID = NULL;
-			}
-			msgid = &line[7];
-			end = strrchr(msgid, '"');
-			if (end && end - msgid > 1) {
-				*end = 0;
-				lastID = strdup(msgid);
-			}
-		} else if (strncmp(line, "msgstr \"", 8) == 0) {
-			char *msgstr, *end;
-
-			if (lastID == NULL)
-				continue;
-
-			msgstr = &line[8];
-			end = strrchr(msgstr, '"');
-			if (end && end - msgstr > 1) {
-				*end = 0;
-				setMSG(lastID, msgstr);
-			}
-			free(lastID);
-			lastID = NULL;
-		}
-	}
-
-    return true;
 }
+
+#ifdef HBM_ENABLE_ROMFS
+
+	#define HBM_LANGUAGE_ROMFS_PATH(ID) "romfs:/hbm/text/HBM_" #ID ".lang"
+
+	#define HBM_GET_LANGUAGE(ENUM, ID, NAME)	case ENUM: \
+													if (!isSystem) HBM_ConsolePrintf("Language set to %d: %s", currentLanguage, #NAME ); \
+													file.Load( HBM_LANGUAGE_ROMFS_PATH(ID) ); \
+													return getLangFile((char *)file.Data(), file.Size());
+
+#else
+
+	#define HBM_LANGUAGE_EXTERN(ID) HBM_##ID##_lang
+	#define HBM_LANGUAGE_EXTERN_END(ID) HBM_##ID##_lang_end
+
+	#define HBM_GET_LANGUAGE(ENUM, ID, NAME)	case ENUM: \
+													if (!isSystem) HBM_ConsolePrintf("Language set to %d: %s", currentLanguage, #NAME ); \
+													extern const uint8_t HBM_LANGUAGE_EXTERN(ID)[]; \
+													extern const uint8_t HBM_LANGUAGE_EXTERN_END(ID)[]; \
+													return getLangFile((char *) HBM_LANGUAGE_EXTERN(ID), (size_t)HBM_LANGUAGE_EXTERN_END(ID) - (size_t)HBM_LANGUAGE_EXTERN(ID) );
+
+#endif
 
 static int currentLanguage = -2;
 
@@ -247,104 +214,96 @@ int HBM_GetCurrentLanguage() {
 	return currentLanguage;
 }
 
-bool HBM_LoadLanguage(int lang) {
+bool HBM_LoadLanguage(enum HBM_LANG lang) {
 	if (lang != currentLanguage) {
 		bool isSystem = false;
 
-		if (lang > 18 || lang < -1) lang = -1;
-		currentLanguage = lang;
+		if (lang >= HBM_LANG_COUNT || lang < HBM_LANG_SYSTEM) lang = HBM_LANG_SYSTEM;
+		currentLanguage = (int)lang;
 
-		if (lang == -1) {
+		if (lang == HBM_LANG_SYSTEM) {
 			isSystem = true;
-			lang = CONF_GetLanguage();
+			// Narrow language selection based on region area
+			switch (CONF_GetArea()) {
+				default:
+					lang = (enum HBM_LANG)CONF_GetLanguage();
+					break;
+				case CONF_AREA_CHN:
+					lang = HBM_LANG_SIMP_CHINESE;
+					break;
+				case CONF_AREA_HKG:
+				case CONF_AREA_TWN:
+					lang = HBM_LANG_TRAD_CHINESE;
+					break;
+				case CONF_AREA_BRA:
+					lang = HBM_LANG_PT_PORTUGUESE;
+					break;
+			}
 			HBM_ConsolePrintf("Language set to System");
 		}
 
-		HBM_FontReload(lang == CONF_LANG_KOREAN ? 1 : 0);
+		if (!HBM_FontInit(lang == HBM_LANG_KOREAN ? 2
+						: lang == HBM_LANG_SIMP_CHINESE || lang == HBM_LANG_TRAD_CHINESE ? 1
+						: 0))
+			return false;
+
+		#ifdef HBM_ENABLE_ROMFS
+		HBMRomfsFile file;
+		#endif
 
 		switch (lang) {
 			default:
-			case CONF_LANG_ENGLISH:
-				if (!isSystem) HBM_ConsolePrintf("Language set to %d (English)", currentLanguage);
-				// return LoadLanguage((char *)HBM_en_lang, (char *)HBM_en_lang + HBM_en_lang_size);
-				return LoadLanguageROMFS("romfs:/hbm/text/en.lang");
+			HBM_GET_LANGUAGE(HBM_LANG_ENGLISH,			en,			English)
+			HBM_GET_LANGUAGE(HBM_LANG_JAPANESE,			ja,			Japanese)
+			HBM_GET_LANGUAGE(HBM_LANG_GERMAN,			de,			Deutsch)
+			HBM_GET_LANGUAGE(HBM_LANG_FRENCH,			fr,			Français)
+			HBM_GET_LANGUAGE(HBM_LANG_SPANISH,			es,			Español)
+			HBM_GET_LANGUAGE(HBM_LANG_ITALIAN,			it,			Italiano)
+			HBM_GET_LANGUAGE(HBM_LANG_DUTCH,			nl,			Nederlands)
 
-			case CONF_LANG_JAPANESE:
-				if (!isSystem) HBM_ConsolePrintf("Language set to %d (Japanese)", currentLanguage);
-				return LoadLanguageROMFS("romfs:/hbm/text/ja.lang");
+			#ifdef HBM_ENABLE_ROMFS
+			HBM_GET_LANGUAGE(HBM_LANG_SIMP_CHINESE,		zh-Hans,	Chinese Simplified)
+			HBM_GET_LANGUAGE(HBM_LANG_TRAD_CHINESE,		zh-Hant,	Chinese Traditional)
+			#else
+			HBM_GET_LANGUAGE(HBM_LANG_SIMP_CHINESE,		zh_Hans,	Chinese Simplified)
+			HBM_GET_LANGUAGE(HBM_LANG_TRAD_CHINESE,		zh_Hant,	Chinese Traditional)
+			#endif
 
-			case CONF_LANG_GERMAN:
-				if (!isSystem) HBM_ConsolePrintf("Language set to %d (German)", currentLanguage);
-				return LoadLanguageROMFS("romfs:/hbm/text/de.lang");
+			HBM_GET_LANGUAGE(HBM_LANG_KOREAN,			ko,			Korean)
 
-			case CONF_LANG_FRENCH:
-				if (!isSystem) HBM_ConsolePrintf("Language set to %d (French)", currentLanguage);
-				return LoadLanguageROMFS("romfs:/hbm/text/fr.lang");
+			#ifdef HBM_ENABLE_ROMFS
+			HBM_GET_LANGUAGE(HBM_LANG_PT_PORTUGUESE,	pt-PT,		Português)
+			HBM_GET_LANGUAGE(HBM_LANG_BR_PORTUGUESE,	pt-BR,		Português do Brasil)
+			#else
+			HBM_GET_LANGUAGE(HBM_LANG_PT_PORTUGUESE,	pt_PT,		Português)
+			HBM_GET_LANGUAGE(HBM_LANG_BR_PORTUGUESE,	pt_BR,		Português do Brasil)
+			#endif
 
-			case CONF_LANG_SPANISH:
-				if (!isSystem) HBM_ConsolePrintf("Language set to %d (Spanish)", currentLanguage);
-				return LoadLanguageROMFS("romfs:/hbm/text/es.lang");
-
-			case CONF_LANG_ITALIAN:
-				if (!isSystem) HBM_ConsolePrintf("Language set to %d (Italian)", currentLanguage);
-				return LoadLanguageROMFS("romfs:/hbm/text/it.lang");
-
-			case CONF_LANG_DUTCH:
-				if (!isSystem) HBM_ConsolePrintf("Language set to %d (Dutch)", currentLanguage);
-				return LoadLanguageROMFS("romfs:/hbm/text/nl.lang");
-
-			case CONF_LANG_SIMP_CHINESE:
-				if (!isSystem) HBM_ConsolePrintf("Language set to %d (Simplified Chinese)", currentLanguage);
-				return LoadLanguageROMFS("romfs:/hbm/text/zh-Hans.lang");
-
-			case CONF_LANG_TRAD_CHINESE:
-				if (!isSystem) HBM_ConsolePrintf("Language set to %d (Traditional Chinese)", currentLanguage);
-				return LoadLanguageROMFS("romfs:/hbm/text/zh-Hant.lang");
-
-			case CONF_LANG_KOREAN:
-				if (!isSystem) HBM_ConsolePrintf("Language set to %d (Korean)", currentLanguage);
-				return LoadLanguageROMFS("romfs:/hbm/text/ko.lang");
-
-			case 10: // CONF_LANG_PT_PORTUGUESE
-				if (!isSystem) HBM_ConsolePrintf("Language set to %d (Portuguese)", currentLanguage);
-				return LoadLanguageROMFS("romfs:/hbm/text/pt-PT.lang");
-
-			case 11: // CONF_LANG_BR_PORTUGUESE
-				if (!isSystem) HBM_ConsolePrintf("Language set to %d (Brazilian Portuguese)", currentLanguage);
-				return LoadLanguageROMFS("romfs:/hbm/text/pt-BR.lang");
-
-			case 12: // CONF_LANG_RUSSIAN
-				if (!isSystem) HBM_ConsolePrintf("Language set to %d (Russian)", currentLanguage);
-				return LoadLanguageROMFS("romfs:/hbm/text/ru.lang");
-
-			case 13: // CONF_LANG_UKRAINIAN
-				if (!isSystem) HBM_ConsolePrintf("Language set to %d (Ukrainian)", currentLanguage);
-				return LoadLanguageROMFS("romfs:/hbm/text/uk.lang");
-
-			case 14: // CONF_LANG_POLISH
-				if (!isSystem) HBM_ConsolePrintf("Language set to %d (Polish)", currentLanguage);
-				return LoadLanguageROMFS("romfs:/hbm/text/pl.lang");
-
-			case 15: // CONF_LANG_DANISH
-				if (!isSystem) HBM_ConsolePrintf("Language set to %d (Danish)", currentLanguage);
-				return LoadLanguageROMFS("romfs:/hbm/text/da.lang");
-
-			case 16: // CONF_LANG_SWEDISH
-				if (!isSystem) HBM_ConsolePrintf("Language set to %d (Swedish)", currentLanguage);
-				return LoadLanguageROMFS("romfs:/hbm/text/sv.lang");
-
-			case 17: // CONF_LANG_TURKISH
-				if (!isSystem) HBM_ConsolePrintf("Language set to %d (Turkish)", currentLanguage);
-				return LoadLanguageROMFS("romfs:/hbm/text/tr.lang");
-
-			case 18: // CONF_LANG_CATALAN
-				if (!isSystem) HBM_ConsolePrintf("Language set to %d (Catalan)", currentLanguage);
-				return LoadLanguageROMFS("romfs:/hbm/text/ca.lang");
+			HBM_GET_LANGUAGE(HBM_LANG_RUSSIAN,			ru,			Russian)
+			HBM_GET_LANGUAGE(HBM_LANG_UKRAINIAN,		uk,			Ukrainian)
+			HBM_GET_LANGUAGE(HBM_LANG_POLISH,			pl,			Polski)
+			HBM_GET_LANGUAGE(HBM_LANG_SWEDISH,			sv,			Svenska)
+			// HBM_GET_LANGUAGE(HBM_LANG_DANISH,			da,			Dansk)
+			// HBM_GET_LANGUAGE(HBM_LANG_FINNISH,			fi,			Suomi)
+			// HBM_GET_LANGUAGE(HBM_LANG_NORWEGIAN,		no,			Norsk bokmaal)
+			// HBM_GET_LANGUAGE(HBM_LANG_GREEK,			el,			Greek)
+			HBM_GET_LANGUAGE(HBM_LANG_TURKISH,			tr,			Türkçe)
+			HBM_GET_LANGUAGE(HBM_LANG_WELSH,			cy,			Cymraeg)
+			HBM_GET_LANGUAGE(HBM_LANG_CATALAN,			ca,			Català)
+			HBM_GET_LANGUAGE(HBM_LANG_OKINAWAN,			ryu,		Uchinaaguchi)
 		}
 	}
 
-	return false;
+	return true;
 }
+
+#undef HBM_GET_LANGUAGE
+#ifdef HBM_ENABLE_ROMFS
+#undef HBM_LANGUAGE_ROMFS_PATH
+#else
+#undef HBM_LANGUAGE_EXTERN
+#undef HBM_LANGUAGE_EXTERN_END
+#endif
 
 #ifdef TRACK_UNIQUE_MSGIDS
 static const char* unique_msgids[4096];

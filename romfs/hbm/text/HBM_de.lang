@@ -1,0 +1,83 @@
+msgid "HOME Menu"
+msgstr "HOME-Menü"
+
+msgid "Wii Menu"
+msgstr "Wii-Menü"
+
+msgid "Reset"
+msgstr "Zurücksetzen"
+
+msgid "Operations Guide"
+msgstr "Elektronische\nBedienungsanleitung"
+
+msgid "Close"
+msgstr "Schließen"
+
+msgid "Wii Remote Settings"
+msgstr "Wii-FB-Einstellungen"
+
+msgid "Close Wii Remote Settings"
+msgstr "Wii-FB-Einstellungen schließen"
+
+msgid "Volume"
+msgstr "Lautstärke"
+
+msgid "Rumble"
+msgstr "Rumble"
+
+msgid "On"
+msgstr "Ein"
+
+msgid "Off"
+msgstr "Aus"
+
+msgid "Connection"
+msgstr "Registrierung"
+
+msgid "Reconnect"
+msgstr "Neu anmelden"
+
+msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
+msgstr "Bitte gleichzeitig ① und ②\njeder Wii-FB in der gewünschten\nSpieler-Reihenfolge drücken."
+
+msgid "Disconnecting..."
+msgstr "Verbindung wird getrennt..."
+
+msgid "Return to the Wii Menu?"
+msgstr "Zurück zum Wii-Menü?"
+
+msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
+msgstr "Zurück zum Wii-Menü? (Nicht\ngespeicherte Daten gehen verloren.)"
+
+msgid "Reset the software?"
+msgstr "Zurücksetzen?"
+
+msgid "Reset the software? (Anything not saved will be lost.)"
+msgstr "Zurücksetzen? (Nicht gespeicherte\nDaten gehen verloren.)"
+
+msgid "This will quit the game. Proceed? (Anything not saved will be lost.)"
+msgstr "Damit wird das Spiel beendet.\nTrotzdem fortfahren? (Nicht\ngespeicherte Daten gehen verloren.)"
+
+msgid "This feature is currently unavailable."
+msgstr "Derzeit ist diese Funktion\nnicht verfügbar."
+
+msgid "Yes"
+msgstr "Ja"
+
+msgid "No"
+msgstr "Nein"
+
+msgid "OK"
+msgstr "O.K."
+
+msgid "P1"
+msgstr "S1"
+
+msgid "P2"
+msgstr "S2"
+
+msgid "P3"
+msgstr "S3"
+
+msgid "P4"
+msgstr "S4"

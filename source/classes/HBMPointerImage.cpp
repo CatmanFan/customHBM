@@ -6,7 +6,7 @@ HBMPointerImage::HBMPointerImage() {
 	this->ShadowX = this->ShadowY = 4;
 
 	this->Visible = false;
-	this->Image.Scale = 0.92F;
+	this->Shadow.ScaleY = this->Shadow.ScaleX = this->Image.ScaleY = this->Image.ScaleX = 0.92F;
 }
 
 HBMPointerImage::~HBMPointerImage() {
@@ -19,21 +19,27 @@ HBMPointerImage::~HBMPointerImage() {
 }
 
 void HBMPointerImage::Load(int num, HBMPointerImage *first) {
-	if (first == NULL) this->first = true;
+	if (!this->loaded) {
+		if (first == NULL)
+			this->first = true;
 
-	// Load images
-	this->Image.LoadPNG(num == 4 ? &HBM_cursor4_png :
-						num == 3 ? &HBM_cursor3_png :
-						num == 2 ? &HBM_cursor2_png :
-						&HBM_cursor1_png, 43, 62);
-	this->Image.SetAnchorPoint(9, 27);
+		// Load images
+		this->Image.LoadPNG(num == 4 ? &HBM_cursor4_png :
+							num == 3 ? &HBM_cursor3_png :
+							num == 2 ? &HBM_cursor2_png :
+							&HBM_cursor1_png, 44, 64);
 
-	// Load shadow
-	if (this->first) this->Shadow.LoadPNG(&HBM_cursor_shadow_png, 44, 62);
-	else this->Shadow.LoadRaw(first->Shadow.GetImage(), 44, 62);
-	this->Shadow.SetAnchorPoint(9, 27);
+		// Load shadow
+		if (this->first)
+			this->Shadow.LoadPNG(&HBM_cursor_shadow_png, 44, 64);
+		else
+			this->Shadow.LoadRaw(first->Shadow.GetImage(), 44, 64);
 
-	this->loaded = true;
+		this->Image.SetAnchorPoint(9, 27);
+		this->Shadow.SetAnchorPoint(9, 27);
+
+		this->loaded = true;
+	}
 }
 
 void HBMPointerImage::Update() {

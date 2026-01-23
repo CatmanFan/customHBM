@@ -1,0 +1,80 @@
+msgid "HOME Menu"
+msgstr "Меню HOME"
+
+msgid "Wii Menu"
+msgstr "Меню Wii"
+
+msgid "Reset"
+msgstr "Перезапуск"
+
+msgid "Operations Guide"
+msgstr "Электронное\nруководство"
+
+msgid "Close"
+msgstr "Закрыть"
+
+msgid "Wii Remote Settings"
+msgstr "Настройки пультов Wii"
+
+msgid "Close Wii Remote Settings"
+msgstr "Закрыть настройки пультов Wii"
+
+msgid "Volume"
+msgstr "Громкость"
+
+msgid "Rumble"
+msgstr "Вибрация"
+
+msgid "On"
+msgstr "Вкл."
+
+msgid "Off"
+msgstr "Выкл."
+
+msgid "Connection"
+msgstr "Порядок"
+
+msgid "Reconnect"
+msgstr "Изменить порядок"
+
+msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
+msgstr "Одновременно нажмите ① и ②\nна каждом пульте Wii в нужном\nдля вас порядке игроков."
+
+msgid "Disconnecting..."
+msgstr "Отключение..."
+
+msgid "Return to the Wii Menu?"
+msgstr "Вернуться в меню Wii?"
+
+msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
+msgstr "Вернуться в меню Wii?\n(Несохраненные данные\nбудут потеряны.)"
+
+msgid "Reset the software?"
+msgstr "Перезапустить программу?"
+
+msgid "Reset the software? (Anything not saved will be lost.)"
+msgstr "Перезапустить программу?\n(Несохраненные данные\nбудут потеряны.)"
+
+msgid "This feature is currently unavailable."
+msgstr "Эта функция недоступна."
+
+msgid "Yes"
+msgstr "Да"
+
+msgid "No"
+msgstr "Нет"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "P1"
+msgstr "И1"
+
+msgid "P2"
+msgstr "И2"
+
+msgid "P3"
+msgstr "И3"
+
+msgid "P4"
+msgstr "И4"

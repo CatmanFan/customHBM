@@ -1,0 +1,86 @@
+msgid "HOME Menu"
+msgstr "Dewislen HOME"
+
+msgid "Wii Menu"
+msgstr "Dewislen y Wii"
+
+msgid "Reset"
+msgstr "Ailgychwyn"
+
+msgid "Operations Guide"
+msgstr "Llawlyfr\nelectronig"
+
+msgid "Loader"
+msgstr "Llwythwr"
+
+msgid "Close"
+msgstr "Cau"
+
+msgid "Wii Remote Settings"
+msgstr "Gosodiadau rheolyddion y Wii"
+
+msgid "Close Wii Remote Settings"
+msgstr "Cau gosodiadau rheolyddion y Wii"
+
+msgid "Volume"
+msgstr "Foliwm"
+
+msgid "Rumble"
+msgstr "Dirgryniad"
+
+msgid "On"
+msgstr "Alluogi"
+
+msgid "Off"
+msgstr "Anablu"
+
+msgid "Connection"
+msgstr "Cysylltiad"
+
+msgid "Reconnect"
+msgstr "Ailgysylltu"
+
+msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
+msgstr "Pwyswch ① a ② ar yr un pryd\nar bob rheolydd Wii yn\ny trefn ddewisol."
+
+msgid "Disconnecting..."
+msgstr "Yn datgysylltu..."
+
+msgid "Return to the Wii Menu?"
+msgstr "Hoffech chi ddychwelyd i\nddewislen y Wii?"
+
+msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
+msgstr "Hoffech chi ddychwelyd i\nddewislen y Wii?\n(Bydd unrhyw ddata heb ei gadw\nyn cael ei golli.)"
+
+msgid "Reset the software?"
+msgstr "Hoffech chi ailgychwyn y\nfeddalwedd?"
+
+msgid "Reset the software? (Anything not saved will be lost.)"
+msgstr "Hoffech chi ailgychwyn y\nfeddalwedd?\n(Bydd unrhyw ddata heb ei gadw\nyn cael ei golli.)"
+
+msgid "This will quit the game. Proceed? (Anything not saved will be lost.)"
+msgstr "Bydd hyn yn gadael y gêm.\nHoffech chi barhau?\n(Bydd unrhyw ddata heb ei gadw\nyn cael ei golli.)"
+
+msgid "This feature is currently unavailable."
+msgstr "Nid yw'r opsiwn hwn ar gael eto."
+
+msgid "Yes"
+msgstr "Hoffwn"
+
+msgid "No"
+msgstr "Na hoffwn"
+
+msgid "OK"
+msgstr "Iawn"
+
+msgid "P1"
+msgstr ""
+
+msgid "P2"
+msgstr ""
+
+msgid "P3"
+msgstr ""
+
+msgid "P4"
+msgstr ""

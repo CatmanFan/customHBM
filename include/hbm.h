@@ -1,16 +1,20 @@
 #ifndef __HBM_library__
 #define __HBM_library__
 
+/***********************************************
+ *             HBM PUBLIC FUNCTIONS            *
+ ***********************************************/
+
 /**
  * Initializes Home Menu library..
  * Please use the dimensions of the game/homebrew. The screen will be clipped otherwise.
  *
  * Original GX attributes used by the target homebrew.
  * The HBM engine renders using GX_MODULATE & GX_DIRECT, and this is required to restore the original attributes
- * when closing the menu, and in order to avoid crashes or freezing.
+ * when closing the menu (or when drawing the No Home icon over the original render), and in order to avoid crashes or freezing.
  *
  * To disable graphics entirely, set either host_TEVSTAGE0 or host_TEX0 to -1.
- * 
+ *
  * 				host_TEVSTAGE0	host_TEX0
  *				***************************************
  * LWS			GX_MODULATE		GX_DIRECT
@@ -22,83 +26,105 @@ void HBM_Init(int width, int height, int host_TEVSTAGE0, int host_TEX0);
 
 /**
  * Releases resources used by Home Menu library.
- */
+ **/
 void HBM_Uninit();
 
 /**
  * Determines whether the No Home icon shows up instead of the menu.
- */
+ **/
 void HBM_ToggleUsage(bool value);
 
 /**
  * Draws the No Home icon on the screen. Should be called before flushing framebuffer.
- */
+ **/
 void HBM_DrawNoHome();
 
 /**
+ * Takes the main screenshot to be used as the background.
+ * This is automatically called at HBM_Menu() but can be called before if the background
+ * screenshot should be made earlier.
+ **/
+void HBM_TakeScreenshot();
+
+/**
  * Opens the HOME Menu UI.
- */
+ **/
 void HBM_Menu();
 
 /**
  * Closes the HOME Menu UI.
- */
+ **/
 void HBM_HideMenu();
 
-/***********************************************
- *              HBM CONFIGURATION              *
- ***********************************************/
+/**
+ * Checks if the Home Menu has been successfully inited.
+ * This can be useful if it has failed to init and you need a way to exit the homebrew (e.g. "if (HBM_IsAvailable()) HBM_Menu()").
+ **/
+bool HBM_IsAvailable();
 
 /**
  * Determines whether to force an aspect ratio by default. If left uncommented, it will be detected from the system's config.
  * The aspect ratio can also be changed inline using HBM_SetWidescreen() (see below).
  *
- * 0: Standard (4:3)
- * 1: Widescreen (16:9)
+ * @param value Can be either 0 (standard, 4/3) or 1 (widescreen, 16/9).
  **/
-// #define HBM_FORCE_ASPECT_RATIO 0
 void HBM_SetWidescreen(bool value);
+
+void HBM_SetBeforeShowMenu(void (*func)());		// called just before starting menu-display animation
+void HBM_SetAfterShowMenu(void (*func)());		// called just after finishing menu-display animation
+void HBM_SetBeforeDraw(void (*func)());			// called at the very beginning of the menu loop
+void HBM_SetAfterDraw(void (*func)());			// called at the very end of the menu loop
+void HBM_SetBeforeHideMenu(void (*func)());		// called just before starting menu-hide animation
+void HBM_SetAfterHideMenu(void (*func)());		// called just after finishing menu-hide animation
+void HBM_SetBeforeExit(void (*func)());			// called just before exiting to Wii system menu or HBC
+void HBM_SetMyReset(void (*func)());			// called at "reset"
 
 /**
  * Default UI language setting.
  * This can also be changed inline using HBM_SetLanguage() (see below).
  *
- * -1: System (auto)		7:  Chinese	(Simplified)	15: Danish
- * 0:  Japanese				8:  Chinese (Traditional)	16: Swedish
- * 1:  English				9:  Korean					17: Turkish
- * 2:  German				10: Portuguese				18: Catalan
- * 3:  French				11: Portuguese (Brazil)
- * 4:  Spanish				12: Russian
- * 5:  Italian				13: Ukrainian
- * 6:  Dutch				14: Polish
+ * @param value The language setting, available options are defined in enum HBM_LANG.
  **/
-#define HBM_LANGUAGE -1
-void HBM_SetLanguage(int value);
+enum HBM_LANG {
+	HBM_LANG_SYSTEM = -1, // Uses Wii's system language
+
+	HBM_LANG_JAPANESE = 0,
+	HBM_LANG_ENGLISH,
+	HBM_LANG_GERMAN,
+	HBM_LANG_FRENCH,
+	HBM_LANG_SPANISH,
+	HBM_LANG_ITALIAN,
+	HBM_LANG_DUTCH,
+	HBM_LANG_SIMP_CHINESE,
+	HBM_LANG_TRAD_CHINESE,
+	HBM_LANG_KOREAN,
+	HBM_LANG_PT_PORTUGUESE,
+	HBM_LANG_BR_PORTUGUESE,
+	HBM_LANG_RUSSIAN,
+	HBM_LANG_UKRAINIAN,
+	HBM_LANG_POLISH,
+	HBM_LANG_TURKISH,
+	HBM_LANG_SWEDISH,
+	HBM_LANG_CATALAN,
+	HBM_LANG_WELSH,
+	HBM_LANG_OKINAWAN,
+
+	HBM_LANG_COUNT, // Total number of language entries, do not touch!
+	HBM_LANG_DANISH,
+	HBM_LANG_FINNISH,
+	HBM_LANG_NORWEGIAN, // Bokmål
+	HBM_LANG_GREEK,
+};
+
+bool HBM_SetLanguage(enum HBM_LANG value);
 
 /**
  * Determines whether to show the unsaved data message.
  * This can also be changed inline using HBM_SetUnsaved() (see below).
  *
- * 0: Disabled
- * 1: Enabled (for "Reset" only)
- * 2: Enabled (both)
+ * @param value Can be set to 0 (disabled), 1 (enabled for "Reset" only), or 2 (enabled for "Wii Menu" and "Reset").
  **/
-#define HBM_UNSAVED 0
 void HBM_SetUnsaved(int value);
-
-/**
- * Enables sound output.
- *
- * 0: Disabled
- * 1: ASNDLib
- **/
-#define HBM_SOUND_OUTPUT 1
-
-/**
- * Verbose & debug options
- **/
-// #define HBM_VERBOSE
-// #define HBM_DEBUG
 
 /*************************************************************************/
 /*************************************************************************
@@ -123,6 +149,27 @@ void HBM_SetUnsaved(int value);
 #include "hbm/i18n.h"
 #include "hbm/romfs.h"
 
+// Texture and vertex attributes for rendering
+// ******************************
+#define HBM_GX_VTXFMT   GX_VTXFMT1 /* max: 7 */
+
+// #define HBM_GX_COLOR1A1
+
+// Other settings
+// ******************************
+#define HBM_WIDTH					608
+#define HBM_HEIGHT					480
+#define HBM_MAX_POINTERS			4 /* max: 4 */
+#define HBM_WIDESCREEN_RATIO		(832.0/608.0)
+#define HBM_EASEINOUT(x)			(x * x * (3.0f - 2.0f * x))
+#define HBM_MAX_GLYPHS_SANSSERIF	36
+#define HBM_MAX_GLYPHS_SERIF		48
+#define HBM_ELEMENT_COUNT			25
+#define HBM_VOLUME					164 /* max: 256 */
+
+// Use u32 instead of u64 ticks_to_millisecs(gettime())
+#define HBM_GETTIME ((u32)(gettick())/(u32)(TB_TIMER_CLOCK))
+
 // Structs, enums
 // ******************************
 enum HBM_STATUS {
@@ -136,11 +183,11 @@ enum HBM_STATUS {
 
 enum HBM_INTERACTIONLAYER {
 	HBM_INTERACTION_MAIN,
-	HBM_INTERACTION_BUTTON,
 	HBM_INTERACTION_DIALOG,
-	HBM_INTERACTION_DIALOGBUTTON,
 	HBM_INTERACTION_WPAD,
-	HBM_INTERACTION_BLOCKED
+	HBM_INTERACTION_BLOCKED,
+	HBM_INTERACTION_BLOCKED_WPAD,
+	HBM_INTERACTION_BLOCKED_DIALOG
 };
 
 enum HBM_TEXTALIGNH {
@@ -151,14 +198,9 @@ enum HBM_TEXTALIGNH {
 
 enum HBM_TEXTALIGNV {
 	HBM_TEXT_TOP,
-	HBM_TEXT_MIDDLE
+	HBM_TEXT_MIDDLE,
+	HBM_TEXT_BOTTOM
 };
-
-// HBM_RENDERMETHOD
-#define HBM_GFX_NONE 0
-#define HBM_GFX_LIBWIISPRITE 1
-#define HBM_GFX_GRRLIB 2
-#define HBM_GFX_GX 3
 
 struct HBM_CONFIG {
 	enum HBM_STATUS Status;
@@ -173,62 +215,80 @@ struct HBM_CONFIG {
 	int Host_TEVSTAGE0;
 
 	bool Widescreen;
-	int Language;
+	enum HBM_LANG Language;
 	int Unsaved;
+};
+
+struct HBM_EXITTRANSITION {
+	int Type;
+	float Fade;
 };
 
 // Filelist
 // ******************************
 // Images
-#include "hbm/files/png/HBM_cursor1_png.h"
-#include "hbm/files/png/HBM_cursor2_png.h"
-#include "hbm/files/png/HBM_cursor3_png.h"
-#include "hbm/files/png/HBM_cursor4_png.h"
-#include "hbm/files/png/HBM_cursor_shadow_png.h"
-#include "hbm/files/png/HBM_dialogBG_png.h"
-#include "hbm/files/png/HBM_dialogButton_mask_png.h"
-#include "hbm/files/png/HBM_dialogButton_png.h"
-#include "hbm/files/png/HBM_mainButton_mask_png.h"
-#include "hbm/files/png/HBM_mainButton_png.h"
-#include "hbm/files/png/HBM_noHome_png.h"
+extern const uint8_t HBM_cursor1_png[];
+extern const uint8_t HBM_cursor2_png[];
+extern const uint8_t HBM_cursor3_png[];
+extern const uint8_t HBM_cursor4_png[];
+extern const uint8_t HBM_cursor_shadow_png[];
+extern const uint8_t HBM_dialogBG_png[];
+extern const uint8_t HBM_dialogButton_mask_png[];
+extern const uint8_t HBM_dialogButton_png[];
+extern const uint8_t HBM_header_png[];
+extern const uint8_t HBM_headerHighlighted_png[];
+extern const uint8_t HBM_mainButton_mask_png[];
+extern const uint8_t HBM_mainButton_png[];
+extern const uint8_t HBM_noHome_png[];
+extern const uint8_t HBM_remote_png[];
+extern const uint8_t HBM_remoteDataBG_png[];
+extern const uint8_t HBM_remoteBattery_0_png[];
+extern const uint8_t HBM_remoteBattery_1_png[];
+extern const uint8_t HBM_remoteBattery_2_png[];
+extern const uint8_t HBM_remoteBattery_3_png[];
+extern const uint8_t HBM_remoteBattery_4_png[];
+extern const uint8_t HBM_topHeaderButton_png[];
 
 // Sounds
-#include "hbm/files/sfx/HBM_sfx_cancel_pcm.h"
-#include "hbm/files/sfx/HBM_sfx_confirm_pcm.h"
-#include "hbm/files/sfx/HBM_sfx_hover_pcm.h"
-#include "hbm/files/sfx/HBM_sfx_menuclose_pcm.h"
-#include "hbm/files/sfx/HBM_sfx_menuopen_pcm.h"
-#include "hbm/files/sfx/HBM_sfx_select_pcm.h"
-
-// Fonts
-// HBM_BINARY_DECLARE(nintendo_NTLGDB_001_ttf, ???)
-// HBM_BINARY_DECLARE(nintendo_NTLG-DB_002_ttf, ???)
-// HBM_BINARY_DECLARE(UtrilloProGrecoStd_ttf, ???)
+extern const uint8_t HBM_sfx_cancel_pcm[];
+extern const uint8_t HBM_sfx_cancel_pcm_end[];
+extern const uint8_t HBM_sfx_confirm_pcm[];
+extern const uint8_t HBM_sfx_confirm_pcm_end[];
+extern const uint8_t HBM_sfx_dialog_pcm[];
+extern const uint8_t HBM_sfx_dialog_pcm_end[];
+extern const uint8_t HBM_sfx_hover_pcm[];
+extern const uint8_t HBM_sfx_hover_pcm_end[];
+extern const uint8_t HBM_sfx_menuclose_pcm[];
+extern const uint8_t HBM_sfx_menuclose_pcm_end[];
+extern const uint8_t HBM_sfx_menuopen_pcm[];
+extern const uint8_t HBM_sfx_menuopen_pcm_end[];
+extern const uint8_t HBM_sfx_select_pcm[];
+extern const uint8_t HBM_sfx_select_pcm_end[];
+extern const uint8_t HBM_sfx_sync1_pcm[];
+extern const uint8_t HBM_sfx_sync1_pcm_end[];
+extern const uint8_t HBM_sfx_sync2_pcm[];
+extern const uint8_t HBM_sfx_sync2_pcm_end[];
+extern const uint8_t HBM_sfx_sync3_pcm[];
+extern const uint8_t HBM_sfx_sync3_pcm_end[];
+extern const uint8_t HBM_sfx_sync4_pcm[];
+extern const uint8_t HBM_sfx_sync4_pcm_end[];
+extern const uint8_t HBM_sfx_syncend_pcm[];
+extern const uint8_t HBM_sfx_syncend_pcm_end[];
 
 // Classes
 // ******************************
 #include "hbm/classes/HBMImage.h"
 #include "hbm/classes/HBMElement.h"
+#include "hbm/classes/HBMHeader.h"
 #include "hbm/classes/HBMButton.h"
 #include "hbm/classes/HBMButtonMain.h"
 #include "hbm/classes/HBMDialogButton.h"
 #include "hbm/classes/HBMDialog.h"
+#include "hbm/classes/HBMRemoteDataSprite.h"
 #include "hbm/classes/HBMPointerImage.h"
 
 #include "hbm/console.h"
 #include "hbm/font.h"
 #include "hbm/wpad.h"
-
-// Texture and vertex attributes for rendering
-// ******************************
-#define HBM_GX_VTXFMT   GX_VTXFMT1 /* max: 7 */
-
-// #define HBM_GX_COLOR1A1
-
-// Other settings
-// ******************************
-#define HBM_WIDESCREEN_RATIO (852.0F/640.0F)
-#define HBM_EASEINOUT(x) (x * x * (3.0f - 2.0f * x))
-#define HBM_MAXGLYPHS 256
 
 #endif

@@ -1,0 +1,86 @@
+msgid "HOME Menu"
+msgstr "Menú HOME"
+
+msgid "Wii Menu"
+msgstr "Menú Wii"
+
+msgid "Reset"
+msgstr "Reinicia"
+
+msgid "Operations Guide"
+msgstr "Manual"
+
+msgid "Loader"
+msgstr "Carregador"
+
+msgid "Close"
+msgstr "Tanca"
+
+msgid "Wii Remote Settings"
+msgstr "Paràmetres"
+
+msgid "Close Wii Remote Settings"
+msgstr "Tanca els paràmetres"
+
+msgid "Volume"
+msgstr "Volum"
+
+msgid "Rumble"
+msgstr "Vibració"
+
+msgid "On"
+msgstr "Activa"
+
+msgid "Off"
+msgstr "Desactiva"
+
+msgid "Connection"
+msgstr "Connexió"
+
+msgid "Reconnect"
+msgstr "Reinicia"
+
+msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
+msgstr "Premeu ① i ② alhora a cada\ncomandament Wii en l'ordre\ndesitjat."
+
+msgid "Disconnecting..."
+msgstr "S'estan desconnectant..."
+
+msgid "Return to the Wii Menu?"
+msgstr "Torneu al menú Wii?"
+
+msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
+msgstr "Torneu al menú Wii?\n(Si hi ha dades sense\ndesar, es perdran.)"
+
+msgid "Reset the software?"
+msgstr "Reinicieu el programari?"
+
+msgid "Reset the software? (Anything not saved will be lost.)"
+msgstr "Reinicieu el programari?\n(Si hi ha dades sense\ndesar, es perdran.)"
+
+msgid "This will quit the game. Proceed? (Anything not saved will be lost.)"
+msgstr "S'acabarà el joc. Continueu?\n(Si hi ha dades sense\ndesar, es perdran.)"
+
+msgid "This feature is currently unavailable."
+msgstr "Aquesta funció encara no\nestà disponible."
+
+msgid "Yes"
+msgstr "Sí"
+
+msgid "No"
+msgstr "No"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "P1"
+msgstr "J1"
+
+msgid "P2"
+msgstr "J2"
+
+msgid "P3"
+msgstr "J3"
+
+msgid "P4"
+msgstr "J4"

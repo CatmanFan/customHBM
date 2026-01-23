@@ -7,25 +7,23 @@ class HBMDialog : public HBMElement {
 		class HBMDialogButton Button2;
 		int Status;
 		bool Active;
-		f64 TransitionStart;
-		f64 Transition;
 
 	public:
 		HBMDialog();
 		~HBMDialog();
 
 		void (*Confirm)();
-		char *Text;
+		const char* Text;
+		bool SlideFromTop;
 
 		void Draw() override;
 		void Update() override;
 		void Show();
-		void UpdateText(char *Text, char *Button1, char *Button2);
+		void UpdateText(const char* Text);
+		void UpdateText(const char* Text, const char* Button1);
+		void UpdateText(const char* Text, const char* Button1, const char* Button2);
 		void Hide();
-
-		void Block(bool value) {
-			this->Button2.Blocked = this->Button1.Blocked = value;
-		}
+		void Reset();
 };
 
 #endif

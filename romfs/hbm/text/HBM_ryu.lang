@@ -1,0 +1,86 @@
+msgid "HOME Menu"
+msgstr "HOMEボタンメニュー"
+
+msgid "Wii Menu"
+msgstr "Wii メニューんかい"
+
+msgid "Reset"
+msgstr "リセット"
+
+msgid "Operations Guide"
+msgstr "説明書"
+
+msgid "Loader"
+msgstr "ローダーんかい"
+
+msgid "Close"
+msgstr "くーゆん"
+
+msgid "Wii Remote Settings"
+msgstr "Wii リモコンぬ設定"
+
+msgid "Close Wii Remote Settings"
+msgstr "Wii リモコンぬ設定くーゆん"
+
+msgid "Volume"
+msgstr "音量"
+
+msgid "Rumble"
+msgstr "振動"
+
+msgid "On"
+msgstr "ON"
+
+msgid "Off"
+msgstr "OFF"
+
+msgid "Connection"
+msgstr "接続"
+
+msgid "Reconnect"
+msgstr "ちなじのーすん"
+
+msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
+msgstr "接続するまーるんかい\n①ボタンとぅ②ボタン\n同時にうちくぃみそーれー。"
+
+msgid "Disconnecting..."
+msgstr "切断中・・・"
+
+msgid "Return to the Wii Menu?"
+msgstr "Wiiメニューんかい\nむどぅいびーが？"
+
+msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
+msgstr "Wiiメニューんかい\nむどぅいびーが？\n（たぶてぃうぅらん内容ー\n失らりやびーん）"
+
+msgid "Reset the software?"
+msgstr "リセットさーびが？"
+
+msgid "Reset the software? (Anything not saved will be lost.)"
+msgstr "リセットさーびが？\n（たぶてぃうぅらん内容ー\n失らりやびーん）"
+
+msgid "This will quit the game. Proceed? (Anything not saved will be lost.)"
+msgstr "ゲーム終わやびーん。\nゆたさいびーが？\n（たぶてぃうぅらん内容ー\n失らりやびーん）"
+
+msgid "This feature is currently unavailable."
+msgstr "くぬ機能ー現在\n実装さりやびらん。"
+
+msgid "Yes"
+msgstr "はい"
+
+msgid "No"
+msgstr "うぅーうぅー"
+
+msgid "OK"
+msgstr "OK"
+
+msgid "P1"
+msgstr "1P"
+
+msgid "P2"
+msgstr "2P"
+
+msgid "P3"
+msgstr "3P"
+
+msgid "P4"
+msgstr "4P"

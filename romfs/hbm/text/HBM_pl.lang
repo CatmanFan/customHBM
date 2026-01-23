@@ -1,0 +1,74 @@
+msgid "HOME Menu"
+msgstr "Menu HOME"
+
+msgid "Wii Menu"
+msgstr "Menu Wii"
+
+msgid "Reset"
+msgstr "Zresetuj"
+
+msgid "Operations Guide"
+msgstr "Elektroniczny\nprzewodnik"
+
+msgid "Close"
+msgstr "Zamknij"
+
+msgid "Wii Remote Settings"
+msgstr "Ustawienia Wiilota"
+
+msgid "Close Wii Remote Settings"
+msgstr "Zamknij ustawienia"
+
+msgid "Volume"
+msgstr "Głośność"
+
+msgid "Rumble"
+msgstr "Wibracje"
+
+msgid "On"
+msgstr "Włącz"
+
+msgid "Off"
+msgstr "Wyłącz"
+
+msgid "Connection"
+msgstr "Połącz"
+
+msgid "Reconnect"
+msgstr "Połącz ponownie"
+
+msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
+msgstr "Naciśnij równocześnie ① oraz ②\nna każdym Wiilocie, aby\nzsynchronizować go z konsolą."
+
+msgid "Disconnecting..."
+msgstr "Rozłączanie...  "
+
+msgid "Return to the Wii Menu?"
+msgstr "Na pewno chcesz wrócić do Menu\nWii?"
+
+msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
+msgstr "Na pewno chcesz wrócić do Menu\nWii?\n(Niezapisane dane zostaną utracone.)"
+
+msgid "Reset the software?"
+msgstr "Na pewno chcesz zresetować gre?"
+
+msgid "Reset the software? (Anything not saved will be lost.)"
+msgstr "Na pewno chcesz zresetować gre?\n(Niezapisane dane zostaną utracone.)"
+
+msgid "Yes"
+msgstr "Tak"
+
+msgid "No"
+msgstr "Nie"
+
+msgid "P1"
+msgstr "P1"
+
+msgid "P2"
+msgstr "P2"
+
+msgid "P3"
+msgstr "P3"
+
+msgid "P4"
+msgstr "P4"

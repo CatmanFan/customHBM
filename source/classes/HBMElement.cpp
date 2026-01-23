@@ -1,4 +1,5 @@
 #include "hbm.h"
+#include "hbm/extern.h"
 
 HBMElement::HBMElement() {
 	// Load images
@@ -10,6 +11,8 @@ HBMElement::HBMElement() {
 	// this->Shadow.R = this->Shadow.G = this->Shadow.B = 0;
 	// this->ShadowOpacity = 0.58;
 	// this->ShadowX = this->ShadowY = 5;
+
+	// this->TimerStop();
 }
 
 HBMElement::~HBMElement() {
@@ -20,7 +23,8 @@ HBMElement::~HBMElement() {
 
 void HBMElement::Draw() {
 	this->Shadow.Visible = this->Image.Visible = this->Visible;
-	this->Shadow.Scale = this->Image.Scale = this->Scale;
+	this->Shadow.ScaleX = this->Image.ScaleX = this->Scale;
+	this->Shadow.ScaleY = this->Image.ScaleY = this->Scale;
 
 	if (this->Visible) {
 		if (this->ShadowOpacity > 0) {
@@ -47,6 +51,8 @@ void HBMElement::SetOpacity(float value) {
 }
 
 void HBMElement::SetHitbox(int w, int h) {
+	this->Hitbox.X = 0;
+	this->Hitbox.Y = 0;
 	this->Hitbox.Width = w;
 	this->Hitbox.Height = h;
 }
@@ -58,34 +64,65 @@ void HBMElement::SetHitbox(int x, int y, int w, int h) {
 	this->Hitbox.Height = h;
 }
 
-void HBMElement::SetPosition(u16 x, u16 y) {
+void HBMElement::SetHitbox2(int w, int h) {
+	this->Hitbox2.X = 0;
+	this->Hitbox2.Y = 0;
+	this->Hitbox2.Width = w;
+	this->Hitbox2.Height = h;
+}
+
+void HBMElement::SetHitbox2(int x, int y, int w, int h) {
+	this->Hitbox2.X = x;
+	this->Hitbox2.Y = y;
+	this->Hitbox2.Width = w;
+	this->Hitbox2.Height = h;
+}
+
+void HBMElement::SetPosition(int x, int y) {
 	this->X = x;
 	this->Y = y;
 }
 
-u16 HBMElement::GetX() {
+int HBMElement::GetX() {
 	return this->X;
 }
 
-u16 HBMElement::GetY() {
+int HBMElement::GetY() {
 	return this->Y;
 }
 
-bool HBMElement::HitboxTouched() {
-	if (this->Hitbox.Width < 1 || this->Hitbox.Height < 1) return false;
+bool HBMElement::HitboxTouched(int chan) {
+	if (this->Blocked || HBM_ExitTransition.Fade > 0
+		|| HBM_Settings.InteractionLayer == HBM_INTERACTION_BLOCKED
+		|| HBM_Settings.InteractionLayer == HBM_INTERACTION_BLOCKED_WPAD
+		|| HBM_Settings.InteractionLayer == HBM_INTERACTION_BLOCKED_DIALOG)
+			return false;
 
-	for (int i = 0; i < 4 /* WPAD_MAX_WIIMOTES */; i++) {
-		if ((HBMPointers[i].X >= this->X + this->Hitbox.X && HBMPointers[i].Y >= this->Y + this->Hitbox.Y)
-		 && (HBMPointers[i].X < this->X + this->Hitbox.X + this->Hitbox.Width && HBMPointers[i].Y < this->Y + this->Hitbox.Y + this->Hitbox.Height)
-		 && HBMPointers[i].Status != HBM_POINTER_INACTIVE)
-			return true;
-	}
+	if (this->Hitbox.Width < 1 || this->Hitbox.Height < 1 || HBMPointers[chan].Status == HBM_POINTER_INACTIVE) return false;
 
-	return false;
+	return /* First hitbox */
+			((HBMPointers[chan].X >= this->X + this->Hitbox.X && HBMPointers[chan].Y >= this->Y + this->Hitbox.Y)
+			 && (HBMPointers[chan].X < this->X + this->Hitbox.X + this->Hitbox.Width && HBMPointers[chan].Y < this->Y + this->Hitbox.Y + this->Hitbox.Height))
+
+		   /* Second hitbox */
+			 || ((this->Hitbox2.Width >= 1 && this->Hitbox2.Height >= 1)
+			 && (HBMPointers[chan].X >= this->X + this->Hitbox2.X && HBMPointers[chan].Y >= this->Y + this->Hitbox2.Y)
+			 && (HBMPointers[chan].X < this->X + this->Hitbox2.X + this->Hitbox2.Width && HBMPointers[chan].Y < this->Y + this->Hitbox2.Y + this->Hitbox2.Height));
 }
 
-bool HBMElement::HitboxTouched(int chan) {
-	if (this->Hitbox.Width < 1 || this->Hitbox.Height < 1 || HBMPointers[chan].Status == HBM_POINTER_INACTIVE) return false;
-	else return (HBMPointers[chan].X >= this->X + this->Hitbox.X && HBMPointers[chan].Y >= this->Y + this->Hitbox.Y)
-			 && (HBMPointers[chan].X < this->X + this->Hitbox.X + this->Hitbox.Width && HBMPointers[chan].Y < this->Y + this->Hitbox.Y + this->Hitbox.Height);
+u8 HBMElement::HitboxStatus(bool conditions) {
+	for (u8 i = 0; i < HBM_MAX_POINTERS; i++) {
+		if (this->HitboxTouched(i)) {
+			if (conditions) {
+				if ((HBMPointers[i].Status == HBM_POINTER_CC && WPAD_ButtonsDown(i) & WPAD_CLASSIC_BUTTON_A)
+				 || (HBMPointers[i].Status == HBM_POINTER_IR && WPAD_ButtonsDown(i) & WPAD_BUTTON_A)) {
+					return ((i & 0x0F) | 0x10);
+				} else {
+					return ((i & 0x0F) | 0x00);
+				}
+			}
+		}
+	}
+
+	return -1;
 }

@@ -1,0 +1,83 @@
+msgid "HOME Menu"
+msgstr "HOME Menüsü"
+
+msgid "Wii Menu"
+msgstr "Wii Menüsü"
+
+msgid "Reset"
+msgstr "Yeniden Başlat"
+
+msgid "Operations Guide"
+msgstr "Elektronik\nElkitabı"
+
+msgid "Close"
+msgstr "Kapat"
+
+msgid "Wii Remote Settings"
+msgstr "Ayarlar"
+
+msgid "Close Wii Remote Settings"
+msgstr "Ayarları Kapat"
+
+msgid "Volume"
+msgstr "Ses"
+
+msgid "Rumble"
+msgstr "Titreşim"
+
+msgid "On"
+msgstr "Açma"
+
+msgid "Off"
+msgstr "Kapama"
+
+msgid "Connection"
+msgstr "Bağlama"
+
+msgid "Reconnect"
+msgstr "Yeniden Bağla"
+
+msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
+msgstr "Kumandaların sırasını\ndeğiştirmek için her bir Wii\nRemote üzerindeki ① ve ②\ndüğmelerine basın."
+
+msgid "Disconnecting..."
+msgstr "Bağlantı kesiliyor..."
+
+msgid "Return to the Wii Menu?"
+msgstr "Wii Menüsüne dönmek\nister misiniz?"
+
+msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
+msgstr "Wii Menüsüne dönmek\nister misiniz? (Kaydedilmemiş\nveriler kaybolabilir.)"
+
+msgid "Reset the software?"
+msgstr "Yazılımı yeniden başlatmak\nister misiniz?"
+
+msgid "Reset the software? (Anything not saved will be lost.)"
+msgstr "Yazılımı yeniden başlatmak\nister misiniz? (Kaydedilmemiş\nveriler kaybolabilir.)"
+
+msgid "This will quit the game. Proceed? (Anything not saved will be lost.)"
+msgstr "Bu işlem oyunu bitirecek.\nDevam etmek ister misiniz?\n(Kaydedilmemiş veriler\nkaybolabilir.)"
+
+msgid "This feature is currently unavailable."
+msgstr "Bu özellik henüz kullanılamıyor."
+
+msgid "Yes"
+msgstr "Evet"
+
+msgid "No"
+msgstr "Hayır"
+
+msgid "OK"
+msgstr "Tamam"
+
+msgid "P1"
+msgstr "P1"
+
+msgid "P2"
+msgstr "P2"
+
+msgid "P3"
+msgstr "P3"
+
+msgid "P4"
+msgstr "P4"

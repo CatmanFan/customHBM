@@ -2,14 +2,12 @@
 #define __HBM__Extern__
 
 extern struct HBM_CONFIG HBM_Settings;
+extern struct HBM_EXITTRANSITION HBM_ExitTransition;
 extern Mtx HBM_GXmodelView2D;
-extern void HBM_DrawBlackQuad(int x, int y, int width, int height, float percentage, bool noWidescreen);
-extern void HBM_PlaySound(const void* pcm, size_t pcm_size);
 
-#define HBM_BUTTON_TIME_CLEAR if (this->TimeSnapshot > 0) { this->TimeSnapshot = 0; }
-#define HBM_BUTTON_TIME_RESET this->TimeSnapshot = this->GetTime();
-#define HBM_BUTTON_TIME_WAITING(x) (this->TimeSnapshot > 0 && (this->GetTime() - this->TimeSnapshot) <= x)
-#define HBM_BUTTON_TIME_PROGRESS(x) ((this->GetTime() - this->TimeSnapshot) / x)
-#define HBM_BUTTON_TIME_PROGRESS_PARTIAL(x, y) ((this->GetTime() - this->TimeSnapshot - x) / (y - x))
+extern void HBM_DrawQuad(int x, int y, int width, int height, u8 shade, float alpha, bool noWidescreen);
+extern void HBM_PlaySound(const void* pcm, const void* pcm_end, bool lowRate);
+
+#define HBM_SOUND(FILE, LOWRATE) HBM_PlaySound(FILE, FILE##_end, LOWRATE);
 
 #endif
