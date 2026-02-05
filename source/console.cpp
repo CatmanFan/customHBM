@@ -33,7 +33,7 @@
 		msg->opened = 0;
 	}
 
-	#define HBM_CONSOLE_USE_IPLROMFONT
+	// #define HBM_CONSOLE_USE_IPLROMFONT
 
 	#ifdef HBM_CONSOLE_USE_IPLROMFONT
 	struct {
@@ -52,74 +52,129 @@
 		SYS_InitFont(IPL_Font.header);
 		// IPL_Font.header->sheet_image = (IPL_Font.header->sheet_image + 31) & ~31;
 
-		GX_InitTexObj(&IPL_Font.texture, IPL_Font.header + IPL_Font.header->sheet_image,
-										 IPL_Font.header->sheet_width,
-										 IPL_Font.header->sheet_height,
-										 IPL_Font.header->sheet_format,
-										 GX_CLAMP, GX_CLAMP, GX_FALSE);
+		u32 texture_size;
+		void *texels;
+
+		texels = IPL_Font.header + IPL_Font.header->sheet_image;
+		GX_InitTexObj(&IPL_Font.texture, texels,
+					 IPL_Font.header->sheet_width,
+					 IPL_Font.header->sheet_height,
+					 IPL_Font.header->sheet_format,
+					 GX_CLAMP, GX_CLAMP, GX_FALSE);
 		GX_InitTexObjLOD(&IPL_Font.texture, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_TRUE, GX_TRUE,
-						 GX_ANISO_4);
+						 GX_ANISO_1);
+
+		texture_size = GX_GetTexBufferSize(IPL_Font.header->sheet_width, IPL_Font.header->sheet_height,
+										   IPL_Font.header->sheet_format, GX_FALSE, 0);
+		DCStoreRange(texels, texture_size);
 		GX_InvalidateTexAll();
 	}
 
 	static int HBM_IPLFontProcess(const char *text, bool should_draw, int text_x = 0, int text_y = 0)
 	{
+		if (should_draw) {
+			GX_SetTevOp (GX_TEVSTAGE0, GX_MODULATE);
+			GX_SetVtxDesc (GX_VA_TEX0 /* GX_VA_CLR0 */, GX_DIRECT);
+			GX_SetTexCoordScaleManually(GX_TEXCOORD0, GX_TRUE, 1, 1);
+			GX_LoadTexObj(&IPL_Font.texture, GX_TEXMAP0);
+
+			GX_Begin(GX_QUADS, HBM_GX_VTXFMT, 4);
+				GX_Position2f32(0, 0);
+				GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
+				GX_TexCoord2f32(0, 0);
+
+				GX_Position2f32(IPL_Font.header->sheet_width, 0);
+				GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
+				GX_TexCoord2f32(IPL_Font.header->sheet_width, 0);
+
+				GX_Position2f32(IPL_Font.header->sheet_width, IPL_Font.header->sheet_height);
+				GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
+				GX_TexCoord2f32(IPL_Font.header->sheet_width, IPL_Font.header->sheet_height);
+
+				GX_Position2f32(0, IPL_Font.header->sheet_height);
+				GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
+				GX_TexCoord2f32(0, IPL_Font.header->sheet_height);
+			GX_End();
+
+			GX_SetTexCoordScaleManually(GX_TEXCOORD0, GX_FALSE, 0, 0);
+			GX_SetTevOp (GX_TEVSTAGE0, GX_PASSCLR);
+			GX_SetVtxDesc (GX_VA_TEX0 /* GX_VA_CLR0 */, GX_NONE);
+			return 0;
+		}
+
+		/** ^^^^^^^^^^^^ DEBUG ^^^^^^^^^^^^ **/
 		void *image;
 		int cellX, cellY, cellW, penX = 0, penY = 0;
 
 		if (should_draw) {
 			GX_SetTevOp (GX_TEVSTAGE0, GX_MODULATE);
-			GX_SetVtxDesc (GX_VA_TEX0, GX_DIRECT);
+			GX_SetVtxDesc (GX_VA_TEX0 /* GX_VA_CLR0 */, GX_DIRECT);
 			GX_SetTexCoordScaleManually(GX_TEXCOORD0, GX_TRUE, 1, 1);
+			GX_LoadTexObj(&IPL_Font.texture, GX_TEXMAP0);
 		}
 
 		for (size_t i = 0; text[i] != '\0'; i++) {
-			if (text[i] - 47 < IPL_Font.header->first_char)
-				continue;
 
-			SYS_GetFontTexture(text[i] - 47, &image, &cellX, &cellY, &cellW);
+			char c = text[i] - 47;
+			switch(c) {
+				case '\r':
+					penX = 0;
+					break;
 
-			if (should_draw) {
-				int16_t penX2 = penX + IPL_Font.header->cell_width;
-				int16_t penY2 = penY + IPL_Font.header->cell_height;
+				case '\n':
+					penY += IPL_Font.header->cell_height;
+					break;
 
-				int16_t cellX2 = cellX + IPL_Font.header->cell_width;
-				int16_t cellY2 = cellY + IPL_Font.header->cell_height;
+				case ' ':
+					//do not draw, because there's some crap on it
+					SYS_GetFontTexture(c, &image, &cellX, &cellY, &cellW);
+					penX += cellW;
+					break;
 
-				Mtx m, mv;
-				guMtxIdentity(m);
-				guMtxTransApply(m, m, text_x, text_y, 0);
-				guMtxConcat(HBM_GXmodelView2D, m, mv);
-				GX_LoadPosMtxImm(mv, GX_PNMTX0);
-				GX_LoadTexObj(&IPL_Font.texture, GX_TEXMAP0);
+				default: {
+					if (c < IPL_Font.header->first_char) continue;
 
-				GX_Begin(GX_QUADS, HBM_GX_VTXFMT, 4);
-					GX_Position2f32(penX, penY);
-					GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
-					GX_TexCoord2f32(cellX, cellY);
+					SYS_GetFontTexture(c, &image, &cellX, &cellY, &cellW);
+					if (should_draw) {
+						int16_t penX2 = penX + IPL_Font.header->cell_width;
+						int16_t penY2 = penY + IPL_Font.header->cell_height;
+						int16_t cellX2 = cellX + IPL_Font.header->cell_width;
+						int16_t cellY2 = cellY + IPL_Font.header->cell_height;
 
-					GX_Position2f32(penX2, penY);
-					GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
-					GX_TexCoord2f32(cellX2, cellY);
+						Mtx m, mv;
+						guMtxIdentity(m);
+						guMtxTransApply(m, m, text_x, text_y, 0);
+						guMtxConcat(HBM_GXmodelView2D, m, mv);
+						GX_LoadPosMtxImm(mv, GX_PNMTX0);
 
-					GX_Position2f32(penX2, penY2);
-					GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
-					GX_TexCoord2f32(cellX2, cellY2);
+						GX_Begin(GX_QUADS, HBM_GX_VTXFMT, 4);
+							GX_Position2f32(penX, penY);
+							GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
+							GX_TexCoord2f32(cellX, cellY);
 
-					GX_Position2f32(penX, penY2);
-					GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
-					GX_TexCoord2f32(cellX, cellY2);
-				GX_End();
-				GX_LoadPosMtxImm(HBM_GXmodelView2D, GX_PNMTX0);
+							GX_Position2f32(penX2, penY);
+							GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
+							GX_TexCoord2f32(cellX2, cellY);
+
+							GX_Position2f32(penX2, penY2);
+							GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
+							GX_TexCoord2f32(cellX2, cellY2);
+
+							GX_Position2f32(penX, penY2);
+							GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
+							GX_TexCoord2f32(cellX, cellY2);
+						GX_End();
+						GX_LoadPosMtxImm(HBM_GXmodelView2D, GX_PNMTX0);
+					}
+					penX += cellW;
+				}
 			}
-
-			penX += cellW;
 		}
 
 		if (should_draw) {
 			GX_SetTexCoordScaleManually(GX_TEXCOORD0, GX_FALSE, 0, 0);
 			GX_SetTevOp (GX_TEVSTAGE0, GX_PASSCLR);
-			GX_SetVtxDesc (GX_VA_TEX0, GX_NONE);
+			GX_SetVtxDesc (GX_VA_TEX0 /* GX_VA_CLR0 */, GX_NONE);
 		}
 
 		return penX;

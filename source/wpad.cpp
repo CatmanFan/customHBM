@@ -19,15 +19,11 @@ static void HBM_PointerSetStatus(int i, enum HBM_POINTER_STATUS status) {
 					HBMPointers[i].RumbleEnd = 0;
 					HBMPointers[i].RumbleTicks = 0;
 				}
-				HBM_ConsolePrintf("WPAD %d set to inactive", i);
+				// HBM_ConsolePrintf("WPAD %d set to inactive", i);
 				break;
 
 			case HBM_POINTER_IR:
-				HBM_ConsolePrintf("WPAD %d set to IR", i);
-				break;
-
 			case HBM_POINTER_CC:
-				HBM_ConsolePrintf("WPAD %d set to CC", i);
 				break;
 		}
 	}
@@ -213,6 +209,7 @@ void HBM_PointerUpdate()
 						HBMPointers[i].Y = HBM_HEIGHT / 2;
 						HBMPointers[i].Rotation = -20.0F;
 						HBM_PointerSetStatus(i, HBM_POINTER_CC);
+						HBM_ConsolePrintf("WPAD %d reset to CC", i);
 					}
 
 					// Activate IR
@@ -240,8 +237,10 @@ void HBM_PointerUpdate()
 						HBM_PointerSetStatus(i, HBM_POINTER_INACTIVE);
 
 					// Deactivate if IR is detected
-					else if (HBM_PointerCheckIR(i))
+					else if (HBM_PointerCheckIR(i)) {
+						HBM_ConsolePrintf("WPAD %d reset to IR", i);
 						HBM_PointerSetStatus(i, HBM_POINTER_IR);
+					}
 
 					// Control using Classic Controller joystick
 					else {

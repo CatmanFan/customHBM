@@ -1,0 +1,77 @@
+msgid "HOME Menu"
+msgstr "Μενού HOME"
+
+msgid "Wii Menu"
+msgstr "Μενού Wii"
+
+msgid "Reset"
+msgstr "Επαναφορά"
+
+msgid "Operations Guide"
+msgstr "Οδηγός\nλειτουργίας"
+
+msgid "Close"
+msgstr "Κλείσιμο"
+
+msgid "Wii Remote Settings"
+msgstr "Ρυθμίσεις Wii Remote"
+
+msgid "Close Wii Remote Settings"
+msgstr "Κλείσιμο ρυθμίσεων"
+
+msgid "Volume"
+msgstr "Ένταση"
+
+msgid "Rumble"
+msgstr "Δόνηση"
+
+msgid "On"
+msgstr "Εντός"
+
+msgid "Off"
+msgstr "Εκτός"
+
+msgid "Connection"
+msgstr ""
+
+msgid "Reconnect"
+msgstr ""
+
+msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
+msgstr "Πατήστε ① και ② στο Wii\nRemote.\n(incomplete)"
+
+msgid "Disconnecting..."
+msgstr ""
+
+msgid "Return to the Wii Menu?"
+msgstr "Επιστροφή στο μενού Wii;"
+
+msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
+msgstr "Επιστροφή στο μενού Wii;\n(Οποιαδήποτε μη αποθηκευμένα\nδεδομένα θα χαθούν.)"
+
+msgid "Reset the software?"
+msgstr "Επαναφορά λογισμικού;"
+
+msgid "Reset the software? (Anything not saved will be lost.)"
+msgstr "Επαναφορά λογισμικού;\n(Οποιαδήποτε μη αποθηκευμένα\nδεδομένα θα χαθούν.)"
+
+msgid "Yes"
+msgstr "Ναι"
+
+msgid "No"
+msgstr "Όχι"
+
+msgid "OK"
+msgstr ""
+
+msgid "P1"
+msgstr "P1"
+
+msgid "P2"
+msgstr "P2"
+
+msgid "P3"
+msgstr "P3"
+
+msgid "P4"
+msgstr "P4"

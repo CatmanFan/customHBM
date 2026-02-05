@@ -12,6 +12,7 @@
 
 HBMDialog::HBMDialog() {
 	this->Image.LoadPNG(&HBM_dialogBG_png, 522, 366);
+	this->Image.SetAnchorPoint(255.5, 177.5);
 	this->SetHitbox(0, 0, 0, 0);
 	this->ShadowOpacity = 0;
 	this->Visible = true;
@@ -23,22 +24,24 @@ HBMDialog::~HBMDialog() {
 }
 
 void HBMDialog::Draw() {
-	if (HBM_Settings.InteractionLayer == HBM_INTERACTION_DIALOG || HBM_Settings.InteractionLayer == HBM_INTERACTION_BLOCKED_DIALOG) {
+	if ((HBM_Settings.Stage & HBM_STAGE_DIALOG) == HBM_STAGE_DIALOG) {
 		HBM_DrawQuad(0, 0, HBM_WIDTH, HBM_HEIGHT, 0, this->Status > 0 ? 0.7333F * HBM_EASEINOUT(HBM_DIALOG_TRANSITION_PROGRESS) : 0.7333F, true);
 		HBMElement::Draw();
-		HBM_DrawText
-		(
-			/* text */		this->Text,
-			/* X */			this->X + 256,
-			/* Y */			this->Y + 131,
-			/* size */		HBM_FontType() == 1 ? 22 : 31,
-			/* scaleX */	HBM_FontType() == 1 ? 1.3 : 1,
-			/* scaleY */	HBM_FontType() == 1 ? 1.3 : 1,
-			/* align */		HBM_TEXT_CENTER, HBM_TEXT_MIDDLE,
-			/* serif */		true,
-			/* color */		100, 100, 100, 255,
-			/* maxWidth */	510
-		);
+		for (int i = 0; i < 1; i++) {
+			HBM_DrawText
+			(
+				/* text */		this->Text,
+				/* X */			this->X + 256,
+				/* Y */			this->Y + (this->AltAppearance ? 134 : 132),
+				/* size */		HBM_FontType() >= 1 ? 27 : -1,
+				/* scaleX */	this->AltAppearance ? 0.82 : 1.02,
+				/* scaleY */	this->AltAppearance ? 0.9 : 1.02,
+				/* align */		HBM_TEXT_CENTER, HBM_TEXT_MIDDLE,
+				/* serif */		true,
+				/* color */		101, 101, 101, 240,
+				/* maxWidth */	510
+			);
+		}
 		this->Button2.Draw();
 		this->Button1.Draw();
 	}
@@ -48,11 +51,16 @@ void HBMDialog::Update() {
 	// Correct positions
 	if (this->X != HBM_DIALOG_X) {
 		this->X = HBM_DIALOG_X;
-		this->Button1.SetPosition (HBM_DIALOG_X + (this->Button2.Visible ? 15 : 137), HBM_DIALOG_Y + 264);
-		this->Button2.SetPosition (HBM_DIALOG_X + 258, HBM_DIALOG_Y + 264);
+		this->Button1.X = HBM_DIALOG_X + (this->Button2.Visible ? 15 : 137);
+		this->Button2.X = HBM_DIALOG_X + 260;
 	}
 
-	if (HBM_Settings.InteractionLayer == HBM_INTERACTION_DIALOG || HBM_Settings.InteractionLayer == HBM_INTERACTION_BLOCKED_DIALOG) {
+	if (this->AltAppearance != this->Button1.AltAppearance) {
+		this->Button1.AltAppearance = this->AltAppearance;
+		this->Button2.AltAppearance = this->AltAppearance;
+	}
+
+	if ((HBM_Settings.Stage & HBM_STAGE_DIALOG) == HBM_STAGE_DIALOG) {
 		this->TimerUpdate();
 		switch (this->Status) {
 			case 0:
@@ -66,7 +74,7 @@ void HBMDialog::Update() {
 				if (!this->TimerPassed(HBM_DIALOG_TRANSITION_TIME)) {
 					this->Y = HBM_DIALOG_Y + ((this->Status == 2 ? HBM_DIALOG_TRANSITION_SLIDE_OUT : HBM_DIALOG_TRANSITION_SLIDE_IN)
 										   * (1.0F - HBM_EASEINOUT(HBM_DIALOG_TRANSITION_PROGRESS)));
-					this->Button2.Y = this->Button1.Y = HBM_DIALOG_Y + 264
+					this->Button2.Y = this->Button1.Y = HBM_DIALOG_Y + (this->AltAppearance ? 266 : 264)
 									+ ((this->Status == 2 ? HBM_DIALOG_TRANSITION_SLIDE_OUT : HBM_DIALOG_TRANSITION_SLIDE_IN)
 									* (1.0F - HBM_EASEINOUT(HBM_DIALOG_TRANSITION_PROGRESS)));
 
@@ -75,19 +83,20 @@ void HBMDialog::Update() {
 				} else {
 					// Set final positions of elements
 					this->Y = HBM_DIALOG_Y;
-					this->Button2.Y = this->Button1.Y = HBM_DIALOG_Y + 264;
+					this->Button2.Y = this->Button1.Y = HBM_DIALOG_Y + (this->AltAppearance ? 266 : 264);
 
 					// Set button status
 					this->Button2.CloseDialog = this->Button1.CloseDialog = false;
 					this->Button1.Blocked = !this->Button1.Visible;
 					this->Button2.Blocked = !this->Button2.Visible;
 
+					// Turn off dialog
 					if (this->Status == 2) {
-						// Turn off dialog
-						HBM_Settings.InteractionLayer = HBM_INTERACTION_MAIN;
-						this->Active = false;
+						this->X = 0;
+						HBM_Settings.Stage &= ~HBM_STAGE_DIALOG;
 					}
 
+					HBM_Settings.Stage &= ~HBM_STAGE_BLOCKED;
 					this->TimerStop();
 					this->Status = 0;
 				}
@@ -100,7 +109,7 @@ void HBMDialog::Update() {
 }
 
 void HBMDialog::Show() {
-	if (!this->Active) {
+	if ((HBM_Settings.Stage & HBM_STAGE_DIALOG) != HBM_STAGE_DIALOG) {
 		HBM_ConsolePrintf("Opening dialog");
 
 		this->X = HBM_DIALOG_X;
@@ -119,20 +128,19 @@ void HBMDialog::Show() {
 			this->Button2.Sound = 0; // Normal sound
 		}
 
-		HBM_Settings.InteractionLayer = HBM_INTERACTION_DIALOG;
+		HBM_Settings.Stage |= (HBM_STAGE_DIALOG | HBM_STAGE_BLOCKED);
 		this->TimerStart();
 		this->Status = 1;
-		this->Active = true;
 	}
 }
 
 void HBMDialog::Hide() {
-	if (!this->Active || this->Status == 2) return;
+	if ((HBM_Settings.Stage & HBM_STAGE_DIALOG) == HBM_STAGE_DIALOG) {
+		HBM_ConsolePrintf("Closing dialog");
 
-	HBM_ConsolePrintf("Closing dialog");
-
-	this->TimerStart();
-	this->Status = 2;
+		this->TimerStart();
+		this->Status = 2;
+	}
 }
 
 void HBMDialog::Reset() {
@@ -142,7 +150,7 @@ void HBMDialog::Reset() {
 	this->Button1.Visible = false;
 	this->Button2.Visible = false;
 
-	this->Active = false;
+	HBM_Settings.Stage &= ~HBM_STAGE_DIALOG;
 	this->Status = 0;
 }
 
@@ -157,7 +165,7 @@ void HBMDialog::UpdateText(const char* Text, const char* Button1) {
 	this->Text = Text;
 	this->Button1.Text = Button1;
 
-	this->Button1.SetPosition (HBM_DIALOG_X + 137, HBM_DIALOG_Y + 264);
+	this->Button1.X = HBM_DIALOG_X + 137;
 	this->Button1.Visible = true;
 	this->Button2.Visible = false;
 }
@@ -167,7 +175,7 @@ void HBMDialog::UpdateText(const char* Text, const char* Button1, const char* Bu
 	this->Button1.Text = Button1;
 	this->Button2.Text = Button2;
 
-	this->Button1.SetPosition (HBM_DIALOG_X + 15, HBM_DIALOG_Y + 264);
+	this->Button1.X = HBM_DIALOG_X + 15;
 	this->Button1.Visible = true;
 	this->Button2.Visible = true;
 }

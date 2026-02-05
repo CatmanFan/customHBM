@@ -92,10 +92,7 @@ int HBMElement::GetY() {
 }
 
 bool HBMElement::HitboxTouched(int chan) {
-	if (this->Blocked || HBM_ExitTransition.Fade > 0
-		|| HBM_Settings.InteractionLayer == HBM_INTERACTION_BLOCKED
-		|| HBM_Settings.InteractionLayer == HBM_INTERACTION_BLOCKED_WPAD
-		|| HBM_Settings.InteractionLayer == HBM_INTERACTION_BLOCKED_DIALOG)
+	if (this->Blocked || HBM_ExitTransition.Fade > 0 || ((HBM_Settings.Stage & HBM_STAGE_BLOCKED) == HBM_STAGE_BLOCKED))
 			return false;
 
 	if (this->Hitbox.Width < 1 || this->Hitbox.Height < 1 || HBMPointers[chan].Status == HBM_POINTER_INACTIVE) return false;

@@ -47,13 +47,13 @@ msgid "Return to the Wii Menu?"
 msgstr "Deseja regressar ao Menu Wii?"
 
 msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
-msgstr "Deseja regressar ao Menu Wii?\n(Perderá dados não guardados.)"
+msgstr "Deseja regressar ao Menu Wii?\nPerderá dados não guardados."
 
 msgid "Reset the software?"
 msgstr "Deseja reiniciar a aplicação?"
 
 msgid "Reset the software? (Anything not saved will be lost.)"
-msgstr "Deseja reiniciar a aplicação?\n(Perderá dados não guardados.)"
+msgstr "Deseja reiniciar a aplicação?\nPerderá dados não guardados."
 
 msgid "Yes"
 msgstr "Sim"

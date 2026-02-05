@@ -50,7 +50,7 @@ HBM_UNSAVED := 0
 #==============================#
 
 # Verbose text
-HBM_VERBOSE := 1
+# HBM_VERBOSE := 1
 # Debugging features; changes background color and displays square on cursor
 # HBM_DEBUG := 1
 # Enables use of IPL-style error screen

@@ -87,8 +87,35 @@ void HBM_SetMyReset(void (*func)());			// called at "reset"
  **/
 enum HBM_LANG {
 	HBM_LANG_SYSTEM = -1, // Uses Wii's system language
+	HBM_LANG_CATALAN,
+	HBM_LANG_WELSH,
+	HBM_LANG_DANISH,
+	HBM_LANG_GERMAN,
+	HBM_LANG_GREEK,
+	HBM_LANG_ENGLISH,
+	HBM_LANG_SPANISH,
+	HBM_LANG_BASQUE,
+	HBM_LANG_FRENCH,
+	HBM_LANG_GALICIAN,
+	HBM_LANG_ITALIAN,
+	HBM_LANG_KALAALLISUT,
+	HBM_LANG_DUTCH,
+	HBM_LANG_NORWEGIAN, // Bokmål
+	HBM_LANG_POLISH,
+	HBM_LANG_PT_PORTUGUESE,
+	HBM_LANG_BR_PORTUGUESE,
+	HBM_LANG_FINNISH,
+	HBM_LANG_SWEDISH,
+	HBM_LANG_TURKISH,
+	HBM_LANG_RUSSIAN,
+	HBM_LANG_UKRAINIAN,
+	HBM_LANG_JAPANESE,
+	HBM_LANG_OKINAWAN,
+	HBM_LANG_SIMP_CHINESE,
+	HBM_LANG_TRAD_CHINESE,
+	HBM_LANG_KOREAN,
 
-	HBM_LANG_JAPANESE = 0,
+	/* HBM_LANG_JAPANESE = 0,
 	HBM_LANG_ENGLISH,
 	HBM_LANG_GERMAN,
 	HBM_LANG_FRENCH,
@@ -103,17 +130,20 @@ enum HBM_LANG {
 	HBM_LANG_RUSSIAN,
 	HBM_LANG_UKRAINIAN,
 	HBM_LANG_POLISH,
-	HBM_LANG_TURKISH,
 	HBM_LANG_SWEDISH,
+	HBM_LANG_DANISH,
+	// HBM_LANG_KALAALLISUT,
+	// HBM_LANG_FINNISH,
+	// HBM_LANG_NORWEGIAN, // Bokmål
+	HBM_LANG_GREEK,
+	HBM_LANG_TURKISH,
 	HBM_LANG_CATALAN,
 	HBM_LANG_WELSH,
-	HBM_LANG_OKINAWAN,
-
+	HBM_LANG_OKINAWAN, */
 	HBM_LANG_COUNT, // Total number of language entries, do not touch!
-	HBM_LANG_DANISH,
-	HBM_LANG_FINNISH,
-	HBM_LANG_NORWEGIAN, // Bokmål
-	HBM_LANG_GREEK,
+
+	HBM_LANG_TAMAZIGHT_KAB,
+	HBM_LANG_TAMAZIGHT_ZGH,
 };
 
 bool HBM_SetLanguage(enum HBM_LANG value);
@@ -162,9 +192,9 @@ void HBM_SetUnsaved(int value);
 #define HBM_MAX_POINTERS			4 /* max: 4 */
 #define HBM_WIDESCREEN_RATIO		(832.0/608.0)
 #define HBM_EASEINOUT(x)			(x * x * (3.0f - 2.0f * x))
-#define HBM_MAX_GLYPHS_SANSSERIF	36
+#define HBM_MAX_GLYPHS_SANSSERIF	64
 #define HBM_MAX_GLYPHS_SERIF		48
-#define HBM_ELEMENT_COUNT			25
+#define HBM_ELEMENT_COUNT			20
 #define HBM_VOLUME					164 /* max: 256 */
 
 // Use u32 instead of u64 ticks_to_millisecs(gettime())
@@ -173,21 +203,19 @@ void HBM_SetUnsaved(int value);
 // Structs, enums
 // ******************************
 enum HBM_STATUS {
-	HBM_INACTIVE,
-	HBM_BLOCKED,
-	HBM_OPENING,
-	HBM_OPEN,
-	HBM_CLOSING,
-	HBM_CLOSED
+	HBM_INACTIVE,		// Idle state
+	HBM_NOHOME,			// Used for displaying NoHome icon
+	HBM_OPENING,		// Used at opening slide animation
+	HBM_OPEN,			// Open state
+	HBM_CLOSING,		// Used at closing slide animation
+	HBM_CLOSED			// Used after closing slide animation, signals to switch back to HBM_INACTIVE
 };
 
-enum HBM_INTERACTIONLAYER {
-	HBM_INTERACTION_MAIN,
-	HBM_INTERACTION_DIALOG,
-	HBM_INTERACTION_WPAD,
-	HBM_INTERACTION_BLOCKED,
-	HBM_INTERACTION_BLOCKED_WPAD,
-	HBM_INTERACTION_BLOCKED_DIALOG
+enum HBM_STAGE {
+	HBM_STAGE_MAIN		= 0,
+	HBM_STAGE_WPAD		= 1 << 1,
+	HBM_STAGE_BLOCKED	= 1 << 2,
+	HBM_STAGE_DIALOG	= 1 << 3,
 };
 
 enum HBM_TEXTALIGNH {
@@ -204,7 +232,7 @@ enum HBM_TEXTALIGNV {
 
 struct HBM_CONFIG {
 	enum HBM_STATUS Status;
-	enum HBM_INTERACTIONLAYER InteractionLayer;
+	int Stage;
 
 	float ScaleX;
 	float ScaleY;
@@ -215,6 +243,7 @@ struct HBM_CONFIG {
 	int Host_TEVSTAGE0;
 
 	bool Widescreen;
+	bool ShowManualButton;
 	enum HBM_LANG Language;
 	int Unsaved;
 };

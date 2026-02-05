@@ -1,0 +1,74 @@
+msgid "HOME Menu"
+msgstr "HOME-valikko"
+
+msgid "Wii Menu"
+msgstr "Wii-valikko"
+
+msgid "Reset"
+msgstr "Käynnistä\nuudelleen"
+
+msgid "Operations Guide"
+msgstr "Sähköinen\nkäyttöohje"
+
+msgid "Close"
+msgstr "Sulje"
+
+msgid "Wii Remote Settings"
+msgstr "Wii-peliohjaimen asetukset"
+
+msgid "Close Wii Remote Settings"
+msgstr "Palaa HOME-valikkoon"
+
+msgid "Volume"
+msgstr ""
+
+msgid "Rumble"
+msgstr "Tärinä"
+
+msgid "On"
+msgstr ""
+
+msgid "Off"
+msgstr ""
+
+msgid "Connection"
+msgstr ""
+
+msgid "Reconnect"
+msgstr "Synkronoi uudelleen"
+
+msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
+msgstr "Paina Wii-peliohjaimesta\n① ja ②-painiketta.\n(incomplete)"
+
+msgid "Disconnecting..."
+msgstr ""
+
+msgid "Return to the Wii Menu?"
+msgstr "Palaa Wii-valikkoon?"
+
+msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
+msgstr "Palaa Wii-valikkoon?\n(Menetät tallentamattomat tiedot.)"
+
+msgid "Reset the software?"
+msgstr "Käynnistääkö ohjelma uudelleen?"
+
+msgid "Reset the software? (Anything not saved will be lost.)"
+msgstr "Käynnistääkö ohjelma uudelleen?\n(Menetät tallentamattomat tiedot.)"
+
+msgid "Yes"
+msgstr "Kyllä"
+
+msgid "No"
+msgstr "Ei"
+
+msgid "P1"
+msgstr "P1"
+
+msgid "P2"
+msgstr "P2"
+
+msgid "P3"
+msgstr "P3"
+
+msgid "P4"
+msgstr "P4"

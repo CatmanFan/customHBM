@@ -226,7 +226,40 @@ bool HBM_LoadLanguage(enum HBM_LANG lang) {
 			// Narrow language selection based on region area
 			switch (CONF_GetArea()) {
 				default:
-					lang = (enum HBM_LANG)CONF_GetLanguage();
+					switch (CONF_GetLanguage())
+					{
+						case CONF_LANG_JAPANESE:
+							lang = HBM_LANG_JAPANESE;
+							break;
+						default:
+						case CONF_LANG_ENGLISH:
+							lang = HBM_LANG_ENGLISH;
+							break;
+						case CONF_LANG_GERMAN:
+							lang = HBM_LANG_GERMAN;
+							break;
+						case CONF_LANG_FRENCH:
+							lang = HBM_LANG_FRENCH;
+							break;
+						case CONF_LANG_SPANISH:
+							lang = HBM_LANG_SPANISH;
+							break;
+						case CONF_LANG_ITALIAN:
+							lang = HBM_LANG_ITALIAN;
+							break;
+						case CONF_LANG_DUTCH:
+							lang = HBM_LANG_DUTCH;
+							break;
+						case CONF_LANG_SIMP_CHINESE:
+							lang = HBM_LANG_SIMP_CHINESE;
+							break;
+						case CONF_LANG_TRAD_CHINESE:
+							lang = HBM_LANG_TRAD_CHINESE;
+							break;
+						case CONF_LANG_KOREAN:
+							lang = HBM_LANG_KOREAN;
+							break;
+					}
 					break;
 				case CONF_AREA_CHN:
 					lang = HBM_LANG_SIMP_CHINESE;
@@ -244,6 +277,7 @@ bool HBM_LoadLanguage(enum HBM_LANG lang) {
 
 		if (!HBM_FontInit(lang == HBM_LANG_KOREAN ? 2
 						: lang == HBM_LANG_SIMP_CHINESE || lang == HBM_LANG_TRAD_CHINESE ? 1
+						: lang == HBM_LANG_TAMAZIGHT_ZGH ? 3
 						: 0))
 			return false;
 
@@ -283,14 +317,20 @@ bool HBM_LoadLanguage(enum HBM_LANG lang) {
 			HBM_GET_LANGUAGE(HBM_LANG_UKRAINIAN,		uk,			Ukrainian)
 			HBM_GET_LANGUAGE(HBM_LANG_POLISH,			pl,			Polski)
 			HBM_GET_LANGUAGE(HBM_LANG_SWEDISH,			sv,			Svenska)
-			// HBM_GET_LANGUAGE(HBM_LANG_DANISH,			da,			Dansk)
-			// HBM_GET_LANGUAGE(HBM_LANG_FINNISH,			fi,			Suomi)
-			// HBM_GET_LANGUAGE(HBM_LANG_NORWEGIAN,		no,			Norsk bokmaal)
-			// HBM_GET_LANGUAGE(HBM_LANG_GREEK,			el,			Greek)
+			HBM_GET_LANGUAGE(HBM_LANG_DANISH,			da,			Dansk)
+			HBM_GET_LANGUAGE(HBM_LANG_FINNISH,			fi,			Suomi)
+			HBM_GET_LANGUAGE(HBM_LANG_NORWEGIAN,		no,			Norsk bokmaal)
+			HBM_GET_LANGUAGE(HBM_LANG_GREEK,			el,			Greek)
 			HBM_GET_LANGUAGE(HBM_LANG_TURKISH,			tr,			Türkçe)
 			HBM_GET_LANGUAGE(HBM_LANG_WELSH,			cy,			Cymraeg)
 			HBM_GET_LANGUAGE(HBM_LANG_CATALAN,			ca,			Català)
+			HBM_GET_LANGUAGE(HBM_LANG_GALICIAN,			gl,			Galego)
+			// HBM_GET_LANGUAGE(HBM_LANG_GALICIAN,			gl_AGAL,	Galego)
+			HBM_GET_LANGUAGE(HBM_LANG_BASQUE,			eu,			Euskara)
+			HBM_GET_LANGUAGE(HBM_LANG_KALAALLISUT,		kl,			Kalaallisut)
 			HBM_GET_LANGUAGE(HBM_LANG_OKINAWAN,			ryu,		Uchinaaguchi)
+			HBM_GET_LANGUAGE(HBM_LANG_TAMAZIGHT_KAB,	kab,		Taqbaylit)
+			HBM_GET_LANGUAGE(HBM_LANG_TAMAZIGHT_ZGH,	zgh,		Tamazight tamghrbit)
 		}
 	}
 

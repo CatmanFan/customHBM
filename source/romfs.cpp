@@ -57,6 +57,18 @@ bool HBMRomfsFile::Load(const char* path) {
 	}
 }
 
+void HBMRomfsFile::LoadFromFile(HBMRomfsFile* file) {
+	if (file != NULL) {
+		if (this->buffer) {
+			this->Free();
+		}
+
+		this->size = file->size;
+		this->path = file->path;
+		this->buffer = file->buffer;
+	}
+}
+
 void HBMRomfsFile::Free() {
 	if (this->buffer) {
 		// HBM_ConsolePrintf("Freeing file: %s", this->path);

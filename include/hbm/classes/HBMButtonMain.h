@@ -10,6 +10,7 @@ class HBMButtonMain : public HBMButton {
 
 	public:
 		HBMButtonMain();
+		void Draw() final;
 		void Update() final;
 };
 

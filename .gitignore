@@ -3,6 +3,7 @@
 
 # Compiled Object files
 /build
+*.a
 *.slo
 *.lo
 *.o
@@ -15,3 +16,4 @@
 
 # Other files
 *.sfk
+/samples

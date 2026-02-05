@@ -48,17 +48,18 @@ typedef struct HBM_ttfGlyph {
 typedef struct HBM_ttfFont {
 	FT_Face /* void * */ face;     /**< A TTF face object. */
 	bool kerning;   /**< true whenever a face object contains kerning data that can be accessed with FT_Get_Kerning. */
-	float lineHeight;
 	bool serifGlyph;
 	bool cached;
 	float defaultSize;
 
+	short leading;
 	float spacing;
 
+	short customSpaceWidth;
 	short extraSpaceWidth;
 	short shortSpaceWidth;
+	short letterSpaceWidth;
 
-	float sizeOffset;
 	float xOffset;
 	float yOffset;
 } HBM_Font;
@@ -80,8 +81,10 @@ static int fontType = -1;
 
 #define HBM_ADJUST_FONT_FOR_SPACING(font, advanceX) (font->spacing > 1 || font->spacing < 1 ? lround((advanceX) * font->spacing) : (advanceX))
 #define HBM_CHECK_GLYPH_SPACE(glyph) (glyph == L' ' || glyph == L' ' /* short space */)
-#define HBM_CHECK_GLYPH_CYRILLIC_GREEK(myFont, glyph) (myFont->serifGlyph && (((int)glyph >= 0x0400 && (int)glyph <= 0x04FF) /* Cyrillic */ \
-																		  || ((int)glyph >= 0x0370 && (int)glyph <= 0x03FF) /* Greek/Coptic */))
+#define HBM_CHECK_GLYPH_LATIN(glyph) (((int)(glyph) >= 0x0041 && (int)(glyph) <= 0x007A) \
+									|| ((int)(glyph) >= 0x00C6 && (int)(glyph) <= 0x017E))
+#define HBM_CHECK_GLYPH_CYRILLIC_GREEK(myFont, glyph) ((myFont->serifGlyph) && (((int)(glyph) >= 0x0400 && (int)(glyph) <= 0x04FF) /* Cyrillic */ \
+																		  || ((int)(glyph) >= 0x0370 && (int)(glyph) <= 0x03FF) /* Greek/Coptic */))
 
 /******************************************************
  *                  GLYPH PROCESSING                  *
@@ -155,6 +158,7 @@ static HBM_Glyph* HBM_cacheGlyph(wchar_t Char, HBM_Font *myFont) {
 		HBM_freeGlyphs(serif);
 	}
 
+	// Search for existing glyph copy first
 	if (myGlyphs->find(Char) != myGlyphs->end())
 		return &((*myGlyphs)[Char]);
 #else
@@ -170,107 +174,112 @@ static HBM_Glyph* HBM_cacheGlyph(wchar_t Char, HBM_Font *myFont) {
 		HBM_freeGlyphs(serif);
 	}
 
+	// Search for existing glyph copy first
 	int target = myFont->serifGlyph ? serifGlyphsUsed : sansSerifGlyphsUsed;
 	for (int i = 0; i < target; i++)
 		if (myGlyphs[i].myChar == Char)
 			return &myGlyphs[i];
 #endif /* HBM_USE_MAP_FOR_GLYPHS */
 
+	// If not, then create a new glyph.
 	// Compress font size depending on screen resolution
-	FT_Set_Char_Size(myFont->face, 64 * (myFont->defaultSize + myFont->sizeOffset), 64 * (myFont->defaultSize + myFont->sizeOffset), 0, 0);
+	FT_Set_Char_Size(myFont->face, 64 * myFont->defaultSize, 64 * myFont->defaultSize, 0, 0);
 
 	FT_UInt gIndex = FT_Get_Char_Index( myFont->face, Char );
-	if (!FT_Load_Glyph(myFont->face, gIndex, FT_LOAD_DEFAULT | FT_LOAD_RENDER)) {
-		if(myFont->face->glyph->format == FT_GLYPH_FORMAT_BITMAP) {
-			int cw = myFont->face->glyph->bitmap.width;
-			int ch = myFont->face->glyph->bitmap.rows;
-			int tw = (cw+7)/8;
-			int th = (ch+3)/4;
+	if (FT_Load_Glyph(myFont->face, gIndex, FT_LOAD_DEFAULT) != 0)
+		return NULL;
+	if (FT_Render_Glyph(myFont->face->glyph, FT_RENDER_MODE_NORMAL) != 0)
+		return NULL;
 
-			int tpitch = tw * 32;
+	if (myFont->face->glyph->format == FT_GLYPH_FORMAT_BITMAP) {
+		int cw = myFont->face->glyph->bitmap.width;
+		int ch = myFont->face->glyph->bitmap.rows;
+		int tw = (cw+7)/8;
+		int th = (ch+3)/4;
+
+		int tpitch = tw * 32;
 
 #ifdef HBM_USE_MAP_FOR_GLYPHS
-			(*myGlyphs)[Char] = (HBM_Glyph)
-			{
-				myFont->face->glyph->bitmap.width,
-				myFont->face->glyph->bitmap.rows,
-				myFont->face->glyph->bitmap_left,
-				myFont->face->glyph->bitmap_top,
-				myFont->face->glyph->advance.x,
-				NULL,
-				NULL
-			};
+		(*myGlyphs)[Char] = (HBM_Glyph)
+		{
+			myFont->face->glyph->bitmap.width,
+			myFont->face->glyph->bitmap.rows,
+			myFont->face->glyph->bitmap_left,
+			myFont->face->glyph->bitmap_top,
+			myFont->face->glyph->advance.x,
+			NULL,
+			NULL
+		};
 #else
-			myGlyphs[target] = (HBM_Glyph)
-			{
-				Char,
-				myFont->face->glyph->bitmap.width,
-				myFont->face->glyph->bitmap.rows,
-				myFont->face->glyph->bitmap_left,
-				myFont->face->glyph->bitmap_top,
-				myFont->face->glyph->advance.x,
-				NULL,
-				NULL
-			};
-			if (myFont->serifGlyph) { serifGlyphsUsed++; } else { sansSerifGlyphsUsed++; }
+		myGlyphs[target] = (HBM_Glyph)
+		{
+			Char,
+			myFont->face->glyph->bitmap.width,
+			myFont->face->glyph->bitmap.rows,
+			myFont->face->glyph->bitmap_left,
+			myFont->face->glyph->bitmap_top,
+			myFont->face->glyph->advance.x,
+			NULL,
+			NULL
+		};
+		if (myFont->serifGlyph) { serifGlyphsUsed++; } else { sansSerifGlyphsUsed++; }
 #endif /* HBM_USE_MAP_FOR_GLYPHS */
 
-			// Convert image bitmap to GX-compatible format and allocate memory to it within the glyph struct
+		// Convert image bitmap to GX-compatible format and allocate memory to it within the glyph struct
 #ifdef HBM_USE_MAP_FOR_GLYPHS
-			(*myGlyphs)[Char].image = (uint8_t *)memalign(32, tw*th*32);
-			memset((*myGlyphs)[Char].image, 0, tw*th*32);
+		(*myGlyphs)[Char].image = (uint8_t *)memalign(32, tw*th*32);
+		memset((*myGlyphs)[Char].image, 0, tw*th*32);
 #else
-			myGlyphs[target].image = (uint8_t *)memalign(32, tw*th*32);
-			memset(myGlyphs[target].image, 0, tw*th*32);
+		myGlyphs[target].image = (uint8_t *)memalign(32, tw*th*32);
+		memset(myGlyphs[target].image, 0, tw*th*32);
 #endif /* HBM_USE_MAP_FOR_GLYPHS */
 
-			int x,y;
-			uint8_t *p = myFont->face->glyph->bitmap.buffer;
-			for(y=0; y<ch; y++) {
-				uint8_t *lp = p;
-				int ty = y/4;
-				int py = y%4;
+		int x,y;
+		uint8_t *p = myFont->face->glyph->bitmap.buffer;
+		for(y=0; y<ch; y++) {
+			uint8_t *lp = p;
+			int ty = y/4;
+			int py = y%4;
 #ifdef HBM_USE_MAP_FOR_GLYPHS
-				uint8_t *lpix = (*myGlyphs)[Char].image + ty*tpitch + py*8;
+			uint8_t *lpix = (*myGlyphs)[Char].image + ty*tpitch + py*8;
 #else
-				uint8_t *lpix = myGlyphs[target].image + ty*tpitch + py*8;
+			uint8_t *lpix = myGlyphs[target].image + ty*tpitch + py*8;
 #endif /* HBM_USE_MAP_FOR_GLYPHS */
-				for(x=0; x<cw; x++) {
-					int tx = x/8;
-					int px = x%8;
-					lpix[32*tx + px] = *lp++;
-				}
-				p += myFont->face->glyph->bitmap.pitch;
+			for(x=0; x<cw; x++) {
+				int tx = x/8;
+				int px = x%8;
+				lpix[32*tx + px] = *lp++;
 			}
+			p += myFont->face->glyph->bitmap.pitch;
+		}
 
 #ifdef HBM_USE_MAP_FOR_GLYPHS
-			DCFlushRange((*myGlyphs)[Char].image, 8*tw * 4*th);
+		DCFlushRange((*myGlyphs)[Char].image, 8*tw * 4*th);
 
-			// Init tex obj
-			(*myGlyphs)[Char].texObj = (GXTexObj *)malloc(sizeof(GXTexObj));
-			DCFlushRange((*myGlyphs)[Char].texObj, sizeof(GXTexObj));
-			GX_InitTexObj((*myGlyphs)[Char].texObj, (*myGlyphs)[Char].image, (*myGlyphs)[Char].width, (*myGlyphs)[Char].rows, GX_TF_I8, GX_CLAMP, GX_CLAMP, GX_FALSE);
-			GX_InitTexObjLOD((*myGlyphs)[Char].texObj, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_TRUE, GX_TRUE, GX_ANISO_1);
+		// Init tex obj
+		(*myGlyphs)[Char].texObj = (GXTexObj *)malloc(sizeof(GXTexObj));
+		DCFlushRange((*myGlyphs)[Char].texObj, sizeof(GXTexObj));
+		GX_InitTexObj((*myGlyphs)[Char].texObj, (*myGlyphs)[Char].image, (*myGlyphs)[Char].width, (*myGlyphs)[Char].rows, GX_TF_I8, GX_CLAMP, GX_CLAMP, GX_FALSE);
+		GX_InitTexObjLOD((*myGlyphs)[Char].texObj, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_TRUE, GX_TRUE, GX_ANISO_1);
 
-			if (!myFont->cached)
-				myFont->cached = true;
+		if (!myFont->cached)
+			myFont->cached = true;
 
-			return &((*myGlyphs)[Char]);
+		return &((*myGlyphs)[Char]);
 #else
-			DCFlushRange(myGlyphs[target].image, 8*tw * 4*th);
+		DCFlushRange(myGlyphs[target].image, 8*tw * 4*th);
 
-			// Init tex obj
-			myGlyphs[target].texObj = (GXTexObj *)malloc(sizeof(GXTexObj));
-			DCFlushRange(myGlyphs[target].texObj, sizeof(GXTexObj));
-			GX_InitTexObj(myGlyphs[target].texObj, myGlyphs[target].image, myGlyphs[target].width, myGlyphs[target].rows, GX_TF_I8, GX_CLAMP, GX_CLAMP, GX_FALSE);
-			GX_InitTexObjLOD(myGlyphs[target].texObj, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_TRUE, GX_TRUE, GX_ANISO_1);
+		// Init tex obj
+		myGlyphs[target].texObj = (GXTexObj *)malloc(sizeof(GXTexObj));
+		DCFlushRange(myGlyphs[target].texObj, sizeof(GXTexObj));
+		GX_InitTexObj(myGlyphs[target].texObj, myGlyphs[target].image, myGlyphs[target].width, myGlyphs[target].rows, GX_TF_I8, GX_CLAMP, GX_CLAMP, GX_FALSE);
+		GX_InitTexObjLOD(myGlyphs[target].texObj, GX_LINEAR, GX_LINEAR, 0.0f, 0.0f, 0.0f, GX_TRUE, GX_TRUE, GX_ANISO_1);
 
-			if (!myFont->cached)
-				myFont->cached = true;
+		if (!myFont->cached)
+			myFont->cached = true;
 
-			return &myGlyphs[target];
+		return &myGlyphs[target];
 #endif /* HBM_USE_MAP_FOR_GLYPHS */
-		}
 	}
 
 	return NULL;
@@ -330,33 +339,32 @@ static int HBM_TextStringMeasure(HBM_TextString *myText, HBM_Font *myFont, bool 
 	FT_UInt previousGlyph = 0;
 
 	// Compress font size depending on screen resolution
-	FT_Set_Char_Size(myFont->face, 64 * (myFont->defaultSize + myFont->sizeOffset), 64 * (myFont->defaultSize + myFont->sizeOffset), 0, 0);
+	FT_Set_Char_Size(myFont->face, 64 * myFont->defaultSize, 64 * myFont->defaultSize, 0, 0);
 
 	bool searchSingleLine = line >= 0 && line < myText->lines;
 	int lineIndex = 0;
+	int lineWidth = 0;
 	int textWidth = 0;
-	int textWidth_max = 0;
 	int textHeight = myFont->defaultSize;
 
 	for (size_t i = 0; i < myText->length; i++) {
 		if (searchSingleLine) {
 			if (myText->utf32[i] == L'\n' || i == myText->length - 1) {
 				if (lineIndex == line || i == myText->length - 1)
-					return return_height ? textHeight : textWidth;
+					return return_height ? textHeight : lineWidth;
 				else {
 					lineIndex++;
-					textWidth = 0;
-					// textHeight = myFont->defaultSize;
+					lineWidth = 0;
 					continue;
 				}
 			}
 		} else {
-			if (textWidth > textWidth_max)
-				textWidth_max = textWidth;
+			if (lineWidth > textWidth)
+				textWidth = lineWidth;
 
 			if (myText->utf32[i] == L'\n') {
-				textWidth = 0;
-				textHeight += lround(myFont->lineHeight * myFont->defaultSize);
+				lineWidth = 0;
+				textHeight += myFont->leading;
 				continue;
 			}
 		}
@@ -364,28 +372,39 @@ static int HBM_TextStringMeasure(HBM_TextString *myText, HBM_Font *myFont, bool 
 		// Use FT_Load_Char?
 		const FT_UInt glyphIndex = FT_Get_Char_Index(myFont->face, myText->utf32[i]);
 
+		// Skip if a space character
+		if (myText->utf32[i] == L' ' && myFont->customSpaceWidth > 0) {
+			lineWidth += myFont->customSpaceWidth;
+			previousGlyph = glyphIndex;
+			continue;
+		}
+		if (myText->utf32[i] == L' ' && myFont->shortSpaceWidth > 0) { // short
+			lineWidth += myFont->shortSpaceWidth;
+			previousGlyph = glyphIndex;
+			continue;
+		}
+
 		if (myFont->kerning && previousGlyph && glyphIndex) {
 			FT_Vector delta;
 			FT_Get_Kerning(myFont->face, previousGlyph, glyphIndex, FT_KERNING_DEFAULT, &delta);
-			textWidth += delta.x >> 6;
+			lineWidth += delta.x >> 6;
 		}
+
 		if (FT_Load_Glyph(myFont->face, glyphIndex, FT_LOAD_DEFAULT) != 0)
 			continue;
 
-		if (myText->utf32[i] == L' ' && myFont->shortSpaceWidth > 0) { // short
-			textWidth += myFont->shortSpaceWidth;
-		} else {
-			if (myText->utf32[i] == L' ') {
-				textWidth += myFont->extraSpaceWidth;
-			}
-			textWidth += HBM_CHECK_GLYPH_SPACE(myText->utf32[i]) ? (slot->advance.x / 64.0f)
-					   : HBM_CHECK_GLYPH_CYRILLIC_GREEK(myFont, myText->utf32[i]) ? HBM_ADJUST_FONT_FOR_SPACING(myFont, slot->bitmap.width)
-					   : HBM_ADJUST_FONT_FOR_SPACING(myFont, slot->advance.x / 64.0f);
-		}
-		previousGlyph = glyphIndex;
+		if (myFont->letterSpaceWidth > 0 && i >= 1 && HBM_CHECK_GLYPH_LATIN(myText->utf32[i]))
+			lineWidth += myFont->letterSpaceWidth;
+
+		lineWidth += HBM_CHECK_GLYPH_SPACE(myText->utf32[i]) ? (slot->advance.x / 64.0f)
+				   : HBM_CHECK_GLYPH_CYRILLIC_GREEK(myFont, myText->utf32[i]) ? HBM_ADJUST_FONT_FOR_SPACING(myFont, slot->bitmap.width)
+				   : HBM_ADJUST_FONT_FOR_SPACING(myFont, slot->advance.x / 64.0f);
+
+		if (myText->utf32[i] == L' ' && myFont->extraSpaceWidth > 0)
+			lineWidth += myFont->extraSpaceWidth;
 	}
 
-	return return_height ? textHeight : textWidth_max;
+	return return_height ? textHeight : textWidth;
 }
 
 static void HBM_TextStringDraw (HBM_TextString *myText,
@@ -407,9 +426,10 @@ static void HBM_TextStringDraw (HBM_TextString *myText,
 	FT_UInt previousGlyph = 0;
 	int penX = myFont->xOffset;
 	int penY = myFont->defaultSize + myFont->yOffset;
+	float fontScale = myText->font_size > 0 ? myText->font_size / myFont->defaultSize : 1;
 
-	int width = HBM_TextStringMeasure(myText, myFont, false) * (myText->font_size / myFont->defaultSize);
-	int height = HBM_TextStringMeasure(myText, myFont, true) * (myText->font_size / myFont->defaultSize);
+	int width = HBM_TextStringMeasure(myText, myFont, false) * fontScale;
+	int height = HBM_TextStringMeasure(myText, myFont, true) * fontScale;
 	if (max_width > 0 && width > max_width)
 		myText->scale_x *= ((float)max_width / (float)width);
 	if (max_height > 0 && height > max_height)
@@ -427,7 +447,7 @@ static void HBM_TextStringDraw (HBM_TextString *myText,
 	for (size_t i = 0; i < myText->length - 1; i++) {
 		if (myText->utf32[i] == L'\n') {
 			penX = myFont->xOffset;
-			penY += lround(myFont->lineHeight * myFont->defaultSize);
+			penY += myFont->leading;
 
 			curLine++;
 			offsetX = myText->align_h == HBM_TEXT_CENTER ? (HBM_TextStringMeasure(myText, myFont, false, curLine) / 2)
@@ -445,38 +465,59 @@ static void HBM_TextStringDraw (HBM_TextString *myText,
 		// Use FT_Load_Char?
 		const FT_UInt glyphIndex = FT_Get_Char_Index(myFont->face, myText->utf32[i]);
 
+		// Skip if a space character
+		if (myText->utf32[i] == L' ') { // normal
+			// Use custom width if found
+			if (myFont->customSpaceWidth > 0) {
+				penX += myFont->customSpaceWidth;
+			} else {
+				if (myFont->kerning && previousGlyph && glyphIndex) {
+					FT_Vector delta;
+					FT_Get_Kerning(myFont->face, previousGlyph, glyphIndex, FT_KERNING_DEFAULT, &delta);
+					penX += delta.x >> 6;
+				}
+
+				if (FT_Load_Glyph(myFont->face, glyphIndex, FT_LOAD_DEFAULT) == 0)
+					penX += myFont->face->glyph->advance.x >> 6;
+
+				if (myFont->extraSpaceWidth > 0)
+					penX += myFont->extraSpaceWidth;
+			}
+
+			previousGlyph = glyphIndex;
+			continue;
+		}
+		if (myText->utf32[i] == L' ') { // short
+			// Use custom width if found
+			if (myFont->shortSpaceWidth > 0) {
+				penX += myFont->shortSpaceWidth;
+			} else {
+				if (myFont->kerning && previousGlyph && glyphIndex) {
+					FT_Vector delta;
+					FT_Get_Kerning(myFont->face, previousGlyph, glyphIndex, FT_KERNING_DEFAULT, &delta);
+					penX += delta.x >> 6;
+				}
+
+				if (FT_Load_Glyph(myFont->face, glyphIndex, FT_LOAD_DEFAULT) == 0)
+					penX += myFont->face->glyph->advance.x >> 6;
+			}
+
+			previousGlyph = glyphIndex;
+			continue;
+		}
+
 		if (myFont->kerning && previousGlyph && glyphIndex) {
 			FT_Vector delta;
 			FT_Get_Kerning(myFont->face, previousGlyph, glyphIndex, FT_KERNING_DEFAULT, &delta);
 			penX += delta.x >> 6;
 		}
 
-		// Skip if a space character
-		if (myText->utf32[i] == L' ') { // normal
-			if (FT_Load_Glyph(myFont->face, glyphIndex, FT_LOAD_DEFAULT) == 0) {
-				penX += (myFont->face->glyph->advance.x >> 6) + myFont->extraSpaceWidth;
-				previousGlyph = glyphIndex;
-			}
-			continue;
-		}
-		if (myText->utf32[i] == L' ') { // short
-			if (myFont->shortSpaceWidth > 0) {
-				penX += myFont->shortSpaceWidth;
-			} else if (FT_Load_Glyph(myFont->face, glyphIndex, FT_LOAD_DEFAULT) != 0) {
-				penX += myFont->face->glyph->advance.x >> 6;
-				previousGlyph = glyphIndex;
-			}
-			continue;
-		}
-
-		if (FT_Load_Glyph(myFont->face, glyphIndex, FT_LOAD_RENDER) != 0)
-			continue;
+		if (myFont->letterSpaceWidth > 0 && i >= 1 && HBM_CHECK_GLYPH_LATIN(myText->utf32[i]))
+			penX += myFont->letterSpaceWidth;
 
 		/************************************/
 		GX_SetTevOp (GX_TEVSTAGE0, GX_MODULATE);
 		GX_SetVtxDesc (GX_VA_TEX0, GX_DIRECT);
-
-		float fontScale = myText->font_size / myFont->defaultSize;
 
 		Mtx m,mv; // Better to use matrices for position
 		guMtxIdentity (m);
@@ -487,9 +528,6 @@ static void HBM_TextStringDraw (HBM_TextString *myText,
 		guMtxConcat(HBM_GXmodelView2D, m, mv);
 		GX_LoadPosMtxImm(mv, GX_PNMTX0);
 
-		// GXTexObj texObj;
-		// GX_InitTexObj(&texObj, glyphData->image, glyphData->width, glyphData->rows, GX_TF_I8, GX_CLAMP, GX_CLAMP, GX_FALSE);
-		// GX_LoadTexObj(&texObj, GX_TEXMAP0);
 		GX_LoadTexObj(glyphData->texObj, GX_TEXMAP0);
 
 		GX_Begin(GX_QUADS, HBM_GX_VTXFMT, 4);
@@ -510,28 +548,6 @@ static void HBM_TextStringDraw (HBM_TextString *myText,
 
 		GX_SetTevOp (GX_TEVSTAGE0, GX_PASSCLR);
 		GX_SetVtxDesc (GX_VA_TEX0, GX_NONE);
-
-		/*
-		GX_SetTevOp (GX_TEVSTAGE0, GX_PASSCLR);
-		GX_SetVtxDesc (GX_VA_TEX0, GX_NONE);
-
-		GX_Begin(GX_POINTS, HBM_GX_VTXFMT, slot->bitmap.width * slot->bitmap.rows);
-		for (FT_Int i = 0; i < slot->bitmap.width; i++)
-		{
-			for (FT_Int j = 0; j < slot->bitmap.rows; j++)
-			{
-				s16 alpha = slot->bitmap.buffer[ j * slot->bitmap.width + i ] - (0xFF - cA);
-				if (alpha < 0) alpha = 0;
-
-				GX_Position2f32(penX + slot->bitmap_left + i + offsetX, penY - slot->bitmap_top + j + offsetY);
-				GX_Color4u8(cR, cG, cB, alpha);
-			}
-		}
-		GX_End();
-
-		GX_LoadPosMtxImm(HBM_GXmodelView2D, GX_PNMTX0);*/
-
-		// free(glyphTexture);
 		/************************************/
 
 		penX += HBM_CHECK_GLYPH_CYRILLIC_GREEK(myFont, myText->utf32[i]) ? HBM_ADJUST_FONT_FOR_SPACING(myFont, glyphData->width + 2)
@@ -610,6 +626,17 @@ int HBM_MeasureText(const char* string, float size, bool use_serif, bool return_
 	return result;
 }
 
+bool HBM_CheckMultilineText(const char* string)
+{
+	for (size_t i = 0; string[i] != '\0'; i++) {
+		if (string[i] == '\n') {
+			return true;
+		}
+	}
+
+	return false;
+}
+
 /******************************************************
  *                    FONT LOADING                    *
  ******************************************************/
@@ -654,6 +681,10 @@ extern const uint8_t HBM_font_ko_serif_ttf[];
 extern const uint8_t HBM_font_ko_serif_ttf_end[];
 extern const uint8_t HBM_font_ko_sansserif_ttf[];
 extern const uint8_t HBM_font_ko_sansserif_ttf_end[];
+extern const uint8_t HBM_font_zgh_serif_ttf[];
+extern const uint8_t HBM_font_zgh_serif_ttf_end[];
+extern const uint8_t HBM_font_zgh_sansserif_ttf[];
+extern const uint8_t HBM_font_zgh_sansserif_ttf_end[];
 #endif
 
 void HBM_FontUninit()
@@ -713,6 +744,16 @@ bool HBM_FontInit(int type)
 					serif = HBM_FontLoadTTF(HBM_font_ko_serif_ttf, (size_t)HBM_font_ko_serif_ttf_end - (size_t)HBM_font_ko_serif_ttf);
 				#endif
 				break;
+
+			case 3: // Tifinagh
+				#ifdef HBM_ENABLE_ROMFS
+					sansSerifFile.Load("romfs:/hbm/ttf/HBM_font_zgh_sansserif.ttf");
+					serifFile.Load("romfs:/hbm/ttf/HBM_font_zgh_serif.ttf");
+				#else
+					sansSerif = HBM_FontLoadTTF(HBM_font_zgh_sansserif_ttf, (size_t)HBM_font_zgh_sansserif_ttf_end - (size_t)HBM_font_zgh_sansserif_ttf);
+					serif = HBM_FontLoadTTF(HBM_font_zgh_serif_ttf, (size_t)HBM_font_zgh_serif_ttf_end - (size_t)HBM_font_zgh_serif_ttf);
+				#endif
+				break;
 		}
 
 		#ifdef HBM_ENABLE_ROMFS
@@ -720,8 +761,14 @@ bool HBM_FontInit(int type)
 			serif = HBM_FontLoadTTF(serifFile.Data(), serifFile.Size());
 		#endif
 
-		if (sansSerif == NULL && serif == NULL) {
+		if (sansSerif == NULL || serif == NULL) {
 			// Failed to load either font, stop
+			HBM_FontFreeTTF(sansSerif);
+			HBM_FontFreeTTF(serif);
+			#ifdef HBM_ENABLE_ROMFS
+				sansSerifFile.Free();
+				serifFile.Free();
+			#endif
 			FT_Done_FreeType(ftLibrary);
 			return false;
 		}
@@ -730,8 +777,8 @@ bool HBM_FontInit(int type)
 		if (sansSerif != NULL) {
 			sansSerif->serifGlyph = false;
 			sansSerif->spacing = 1;
-			sansSerif->defaultSize = 40; // 59
-			sansSerif->lineHeight = 1;
+			sansSerif->defaultSize = 40;
+			sansSerif->leading = 40;
 
 			switch (type) {
 				default:
@@ -739,7 +786,6 @@ bool HBM_FontInit(int type)
 					break;
 				case 1: // Hanzi
 					sansSerif->defaultSize = 36;
-					// sansSerif->sizeOffset = 4;
 					// sansSerif->xOffset = 1;
 					break;
 				case 2: // Korean
@@ -748,25 +794,44 @@ bool HBM_FontInit(int type)
 					sansSerif->xOffset = 1;
 					sansSerif->yOffset = -2.6;
 					break;
+				case 3: // Tifinagh
+					sansSerif->defaultSize = 36;
+					break;
 			}
 		}
 
 		/** Serif options **/
 		if (serif != NULL) {
 			serif->serifGlyph = true;
+			serif->kerning = false;
 			serif->spacing = 1;
 
 			switch (type) {
 				default:
 					break;
 				case 0: // International
+					serif->defaultSize = 28;
+					serif->leading = 38;
+					serif->customSpaceWidth = 11;
+					serif->letterSpaceWidth = 1;
+					break;
 				case 1: // Hanzi
-					serif->defaultSize = 31;
-					serif->lineHeight = 1.25;
+					serif->defaultSize = 22;
+					serif->leading = 28;
+					serif->customSpaceWidth = 10;
+					serif->letterSpaceWidth = 0;
 					break;
 				case 2: // Korean
 					serif->defaultSize = 22;
-					serif->lineHeight = 1.35;
+					serif->leading = 28;
+					serif->customSpaceWidth = 9;
+					serif->letterSpaceWidth = 1;
+					break;
+				case 3: // Tifinagh
+					serif->defaultSize = 22;
+					serif->leading = 28;
+					serif->customSpaceWidth = 9;
+					serif->letterSpaceWidth = 0;
 					break;
 			}
 		}
@@ -780,9 +845,11 @@ bool HBM_FontInit(int type)
 #ifdef HBM_USE_ERROR_SCREEN
 void HBM_FontSetForError()
 {
-	sansSerif->extraSpaceWidth = 5;
-	sansSerif->spacing = 0.999;
-	sansSerif->lineHeight = /* 0.95 */ 1.30;
+	HBM_freeGlyphs(sansSerif);
+	sansSerif->defaultSize = 29.5;
+	sansSerif->customSpaceWidth = 14;
+	sansSerif->spacing = 0.9425;
+	sansSerif->leading = 39;
 }
 #endif
 
@@ -793,4 +860,5 @@ int HBM_FontType()
 
 #undef HBM_ADJUST_FONT_FOR_SPACING
 #undef HBM_CHECK_GLYPH_SPACE
+#undef HBM_CHECK_GLYPH_LATIN
 #undef HBM_CHECK_GLYPH_CYRILLIC_GREEK

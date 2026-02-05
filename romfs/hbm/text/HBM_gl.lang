@@ -1,0 +1,77 @@
+msgid "HOME Menu"
+msgstr "Menú HOME"
+
+msgid "Wii Menu"
+msgstr "Menú da Wii"
+
+msgid "Reset"
+msgstr "Reiniciar"
+
+msgid "Operations Guide"
+msgstr "Manual\nelectrónico"
+
+msgid "Close"
+msgstr "Cerrar"
+
+msgid "Wii Remote Settings"
+msgstr "Configurar mandos da Wii"
+
+msgid "Close Wii Remote Settings"
+msgstr "Retornar ao menú"
+
+msgid "Volume"
+msgstr "Volume"
+
+msgid "Rumble"
+msgstr "Vibración"
+
+msgid "On"
+msgstr "Si"
+
+msgid "Off"
+msgstr "Non"
+
+msgid "Connection"
+msgstr "Conexión"
+
+msgid "Reconnect"
+msgstr "Nova conexión"
+
+msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
+msgstr "Preme á vez ① e ② en cada\nmando da Wii na orde\ndesexado."
+
+msgid "Disconnecting..."
+msgstr "Desconectando os mandos..."
+
+msgid "Return to the Wii Menu?"
+msgstr "Desexa retornar ao menú da Wii?"
+
+msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
+msgstr "Desexa retornar ao menú da Wii?\n(Datos non gardados serarán perdidos.)"
+
+msgid "Reset the software?"
+msgstr "Desexa reiniciar o programa?"
+
+msgid "Reset the software? (Anything not saved will be lost.)"
+msgstr "Desexa reiniciar o programa?\n(Datos non gardados serarán perdidos.)"
+
+msgid "Yes"
+msgstr "Si"
+
+msgid "No"
+msgstr "Non"
+
+msgid "OK"
+msgstr ""
+
+msgid "P1"
+msgstr "J1"
+
+msgid "P2"
+msgstr "J2"
+
+msgid "P3"
+msgstr "J3"
+
+msgid "P4"
+msgstr "J4"

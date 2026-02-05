@@ -7,8 +7,10 @@ class HBMDialogButton : public HBMButton {
 
 	public:
 		HBMDialogButton();
+		void Draw() final;
 		void Update() final;
 		bool CloseDialog;
+		bool AltAppearance;
 		int Sound;
 };
 

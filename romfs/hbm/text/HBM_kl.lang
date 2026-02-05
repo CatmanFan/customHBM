@@ -1,0 +1,80 @@
+msgid "HOME Menu"
+msgstr "HOME-toqqagassat"
+
+msgid "Wii Menu"
+msgstr "Wii-periarfissat"
+
+msgid "Reset"
+msgstr "Aallarteqqinneq"
+
+msgid "Operations Guide"
+msgstr "Elektronikkikkut\nnajoqqutassaq"
+
+msgid "Close"
+msgstr "Matuguk"
+
+msgid "Wii Remote Settings"
+msgstr "Wiip aquutaata inissiissuti"
+
+msgid "Close Wii Remote Settings"
+msgstr "Inissiissutit matukkit"
+
+msgid "Volume"
+msgstr "Højtaleri"
+
+msgid "Rumble"
+msgstr ""
+
+msgid "On"
+msgstr "Atuuppoq"
+
+msgid "Off"
+msgstr "Atunngilaq"
+
+msgid "Connection"
+msgstr "Attaveqarneq"
+
+msgid "Reconnect"
+msgstr "Attavik nutaaq"
+
+msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
+msgstr "Spilertut tulleriinnera\nkissaatikkit atorillugu Wiip\naquutaani tamarmik ① aamma ②\ntuukkit."
+
+msgid "Disconnecting..."
+msgstr "Unitseqqaneq.."
+
+msgid "Return to the Wii Menu?"
+msgstr "Wiip periarfissaanut uterumavit?"
+
+msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
+msgstr "Wiip periarfissaanut uterumavit?\n(Datat toqqorneqanngitsut\ntammarneqassapput.)"
+
+msgid "Reset the software?"
+msgstr "Programi aallaqqaataanit\naallartikkumaviuk?"
+
+msgid "Reset the software? (Anything not saved will be lost.)"
+msgstr "Programi aallaqqaataanit\naallartikkumaviuk?\n(Datat toqqorneqanngitsut\ntammarneqassapput.)"
+
+msgid "This will quit the game. Proceed? (Anything not saved will be lost.)"
+msgstr "Spilimit anissaatit.\nSuli nangikkumavit?\n(Datat toqqorneqanngitsut\ntammarneqassapput.)"
+
+msgid "This feature is currently unavailable."
+msgstr "Atuuffik una maannakkut\nsaqqummersimanngilaq."
+
+msgid "Yes"
+msgstr "Aap"
+
+msgid "No"
+msgstr "Naamik"
+
+msgid "P1"
+msgstr "S1"
+
+msgid "P2"
+msgstr "S2"
+
+msgid "P3"
+msgstr "S3"
+
+msgid "P4"
+msgstr "S4"

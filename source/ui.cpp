@@ -37,7 +37,7 @@ static void* fb[2];
 static int fb_i;
 
 static HBMElement *HBM_allElements[HBM_ELEMENT_COUNT];
-static HBMButtonMain HBM_wiiMenuButton, HBM_resetButton;
+static HBMButtonMain HBM_wiiMenuButton, HBM_resetButton, HBM_manualButton;
 static HBMDialog HBM_dialog;
 static HBMPointerImage HBM_pointer1, HBM_pointer2, HBM_pointer3, HBM_pointer4;
 static HBMHeader HBM_topHeader, HBM_bottomHeader;
@@ -91,10 +91,13 @@ static void HBM_FreeScreenshot() {
 static f64 HBM_timeElapsed;
 static f64 HBM_timeStopwatch;
 
+static f64 HBM_aboutTime;
+
 static void HBM_TimeClear()
 {
 	HBM_timeStopwatch = -1;
 	HBM_timeElapsed = 0;
+	HBM_aboutTime = 0;
 }
 
 static void HBM_TimeUpdate()
@@ -250,11 +253,11 @@ static void HBM_ErrorDraw()
 			HBM_DrawText
 			(
 				/* text */		HBM_ErrorText,
-				/* X */			(HBM_Settings.Widescreen ? HBM_WIDTH * HBM_WIDESCREEN_RATIO : HBM_WIDTH) / 2,
-				/* Y */			HBM_HEIGHT / 2,
+				/* X */			(HBM_Settings.Widescreen ? HBM_WIDTH * HBM_WIDESCREEN_RATIO : HBM_WIDTH) / 2 - 0.33,
+				/* Y */			238,
 				/* size */		22,
-				/* scaleX */	0.945,
-				/* scaleY */	1.025,
+				/* scaleX */	0.931,
+				/* scaleY */	1.015,
 				/* align */		HBM_TEXT_CENTER, HBM_TEXT_MIDDLE,
 				/* serif */		false,
 				/* color */		220, 220, 220, 255,
@@ -276,11 +279,9 @@ static void HBM_ErrorDraw()
 
 static void HBM_TriggerShutdown()
 {
-	if (HBM_Settings.InteractionLayer == HBM_INTERACTION_DIALOG) { HBM_Settings.InteractionLayer = HBM_INTERACTION_BLOCKED_DIALOG; }
-	else if (HBM_Settings.InteractionLayer != HBM_INTERACTION_BLOCKED_DIALOG) { HBM_Settings.InteractionLayer = HBM_INTERACTION_BLOCKED; }
-
-	HBM_ConsolePrintf("Exiting: 3 (Shutdown)");
-	if (HBM_initialized && (HBM_Settings.Status != HBM_INACTIVE && HBM_Settings.Status != HBM_BLOCKED) && HBM_ExitTransition.Type == 0) {
+	if (HBM_initialized && (HBM_Settings.Status != HBM_INACTIVE && HBM_Settings.Status != HBM_NOHOME) && HBM_ExitTransition.Type == 0) {
+		HBM_ConsolePrintf("Exiting: 3 (Shutdown)");
+		HBM_Settings.Stage |= HBM_STAGE_BLOCKED;
 		HBM_ExitTransition.Type = 3;
 	}
 }
@@ -291,22 +292,20 @@ static void HBM_TriggerReset()
 	if (HBM_ErrorStatus > 0) return;
 #endif
 
-	if (HBM_Settings.InteractionLayer == HBM_INTERACTION_DIALOG) { HBM_Settings.InteractionLayer = HBM_INTERACTION_BLOCKED_DIALOG; }
-	else if (HBM_Settings.InteractionLayer != HBM_INTERACTION_BLOCKED_DIALOG) { HBM_Settings.InteractionLayer = HBM_INTERACTION_BLOCKED; }
-
-	HBM_ConsolePrintf("Exiting: 2 (Reset)");
-	if (HBM_initialized && (HBM_Settings.Status != HBM_INACTIVE && HBM_Settings.Status != HBM_BLOCKED) && HBM_ExitTransition.Type == 0)
+	if (HBM_initialized && (HBM_Settings.Status != HBM_INACTIVE && HBM_Settings.Status != HBM_NOHOME) && HBM_ExitTransition.Type == 0) {
+		HBM_ConsolePrintf("Exiting: 2 (Reset)");
+		HBM_Settings.Stage |= HBM_STAGE_BLOCKED;
 		HBM_ExitTransition.Type = 2;
+	}
 }
 
 static void HBM_TriggerSystemMenu()
 {
-	if (HBM_Settings.InteractionLayer == HBM_INTERACTION_DIALOG) { HBM_Settings.InteractionLayer = HBM_INTERACTION_BLOCKED_DIALOG; }
-	else if (HBM_Settings.InteractionLayer != HBM_INTERACTION_BLOCKED_DIALOG) { HBM_Settings.InteractionLayer = HBM_INTERACTION_BLOCKED; }
-
-	HBM_ConsolePrintf("Exiting: 1 (System Menu)");
-	if (HBM_initialized && (HBM_Settings.Status != HBM_INACTIVE && HBM_Settings.Status != HBM_BLOCKED) && HBM_ExitTransition.Type == 0)
+	if (HBM_initialized && (HBM_Settings.Status != HBM_INACTIVE && HBM_Settings.Status != HBM_NOHOME) && HBM_ExitTransition.Type == 0) {
+		HBM_ConsolePrintf("Exiting: 1 (System Menu)");
+		HBM_Settings.Stage |= HBM_STAGE_BLOCKED;
 		HBM_ExitTransition.Type = 1;
+	}
 }
 
 static void HBM_HandleShutdown() { HBM_TriggerShutdown(); }
@@ -321,6 +320,7 @@ static void HBM_PromptReset()
 {
 	HBM_dialog.Confirm = HBM_TriggerReset;
 	HBM_dialog.SlideFromTop = true;
+	HBM_dialog.AltAppearance = false;
 	HBM_dialog.UpdateText(
 		HBM_gettextmsg(HBM_MyReset == NULL ? "This will quit the game. Proceed? (Anything not saved will be lost.)" :
 					   HBM_Settings.Unsaved > 0 ? "Reset the software? (Anything not saved will be lost.)" : "Reset the software?"),
@@ -334,6 +334,7 @@ static void HBM_PromptSystemMenu()
 {
 	HBM_dialog.Confirm = HBM_TriggerSystemMenu;
 	HBM_dialog.SlideFromTop = true;
+	HBM_dialog.AltAppearance = false;
 	HBM_dialog.UpdateText(
 		HBM_gettextmsg(HBM_Settings.Unsaved > 1 ? "Return to the Wii Menu? (Anything not saved will be lost.)" : "Return to the Wii Menu?"),
 		HBM_gettextmsg("Yes"),
@@ -349,12 +350,26 @@ static void HBM_PromptUnimplemented()
 #else
 	HBM_dialog.Confirm = NULL;
 	HBM_dialog.SlideFromTop = false;
+	HBM_dialog.AltAppearance = true;
 	HBM_dialog.UpdateText(
 		HBM_gettextmsg("This feature is currently unavailable."),
+		// "Miiがとうろくされていません。\nMii",
 		HBM_gettextmsg("OK")
 	);
 	HBM_dialog.Show();
 #endif
+}
+
+static void HBM_PromptAbout()
+{
+	HBM_dialog.Confirm = NULL;
+	HBM_dialog.SlideFromTop = false;
+	HBM_dialog.AltAppearance = true;
+	HBM_dialog.UpdateText(
+		"libhbm 1.0 (by Mr. Lechkar)\n\nTranslations by Mr. Lechkar, TVGZone,\nAngel333119, CaXaP, Wiicat\nand Graj Po Polsku",
+		HBM_gettextmsg("OK")
+	);
+	HBM_dialog.Show();
 }
 
 /******************************************************
@@ -362,8 +377,9 @@ static void HBM_PromptUnimplemented()
  ******************************************************/
 
 static void HBM_elementPositions() {
-	HBM_wiiMenuButton.SetPosition (HBM_Settings.Widescreen ? 94 : 34, 180); // 172, 168
+	HBM_wiiMenuButton.SetPosition (HBM_Settings.Widescreen ? 94 : 34, HBM_Settings.ShowManualButton ? 110 : 180);
 	HBM_resetButton.SetPosition (HBM_Settings.Widescreen ? 471 : 310, HBM_wiiMenuButton.Y);
+	HBM_manualButton.SetPosition (HBM_Settings.Widescreen ? 283 : 172, 234);
 
 	HBM_topHeader.TextX = 28.7;
 	HBM_topHeader.TextY = 67.28;
@@ -405,6 +421,10 @@ static void HBM_elementSetup() {
 	HBM_resetButton.Selected = HBM_PromptReset;
 	HBM_resetButton.Visible = true;
 
+	/** HBM_manualButton **/
+	HBM_manualButton.Selected = HBM_PromptUnimplemented;
+	HBM_manualButton.Visible = true;
+
 	/** HBM_topHeader **/
 	HBM_topHeader.AfterSelected = HBM_HideMenu;
 	HBM_topHeader.Visible = true;
@@ -439,6 +459,7 @@ static void HBM_elementSetup() {
 	/** Elements list **/
 	HBM_allElements[0] = &HBM_wiiMenuButton;
 	HBM_allElements[1] = &HBM_resetButton;
+	HBM_allElements[2] = HBM_Settings.ShowManualButton ? &HBM_manualButton : NULL;
 	HBM_allElements[HBM_ELEMENT_COUNT - 2] = &HBM_topHeader;
 	HBM_allElements[HBM_ELEMENT_COUNT - 1] = &HBM_bottomHeader;
 }
@@ -446,10 +467,11 @@ static void HBM_elementSetup() {
 static void HBM_SlideAnimation(float progress)
 {
 	HBM_backgroundOpacity = (99.0F / 255.0F) * HBM_EASEINOUT(progress);
-	HBM_wiiMenuButton.SetOpacity(HBM_EASEINOUT(progress));
-	HBM_resetButton.SetOpacity(HBM_EASEINOUT(progress));
 	HBM_topHeader.Y = -10 - (90 * (1 - HBM_EASEINOUT(progress)));
 	HBM_bottomHeader.Y = 376 + (115 * (1 - HBM_EASEINOUT(progress)));
+	HBM_wiiMenuButton.SetOpacity(HBM_EASEINOUT(progress));
+	HBM_resetButton.SetOpacity(HBM_EASEINOUT(progress));
+	HBM_manualButton.SetOpacity(HBM_EASEINOUT(progress));
 }
 
 /******************************************************
@@ -494,6 +516,8 @@ bool HBM_SetLanguage(enum HBM_LANG value) {
 
 		HBM_wiiMenuButton.Text = HBM_gettextmsg("Wii Menu");
 		HBM_resetButton.Text = HBM_MyReset == NULL ? HBM_gettextmsg("Loader") : HBM_gettextmsg("Reset");
+		HBM_manualButton.Text = HBM_gettextmsg("Operations Guide");
+
 		HBM_dialog.UpdateText(
 			HBM_gettextmsg(HBM_dialog.Confirm == HBM_TriggerReset ? (HBM_MyReset == NULL ? "This will quit the game. Proceed? (Anything not saved will be lost.)" :
 																	HBM_Settings.Unsaved > 0 ? "Reset the software? (Anything not saved will be lost.)" : "Reset the software?")
@@ -530,10 +554,8 @@ void HBM_Init(int width, int height, int host_TEVSTAGE0, int host_TEX0)
 
 	// LWP_CreateThread(&HBM_mainthread, HBM_Thread, NULL, NULL, 0, 70);
 	HBM_Settings.Status = HBM_INACTIVE;
-	HBM_Settings.InteractionLayer = HBM_INTERACTION_MAIN;
 
 	HBM_Settings.ScaleY = HBM_Settings.ScaleX = 1;
-
 	HBM_Settings.Width = width;
 	HBM_Settings.Height = height;
 
@@ -551,11 +573,7 @@ void HBM_Init(int width, int height, int host_TEVSTAGE0, int host_TEX0)
 	#else
 		HBM_Settings.Language = HBM_LANG_SYSTEM;
 	#endif
-	#ifdef HBM_UNSAVED
-		HBM_Settings.Unsaved = HBM_UNSAVED;
-	#else
-		HBM_Settings.Unsaved = 0;
-	#endif
+	HBM_Settings.Unsaved = 0;
 
 	// Setup target vertex descriptor
 	GX_SetVtxAttrFmt(HBM_GX_VTXFMT, GX_VA_POS, GX_POS_XY, GX_F32, 0); // Positions given in 2 f32's (f32 x, f32 y)
@@ -629,7 +647,7 @@ static void HBM_Draw()
 
 	// Elements
 	for (int i = 0; i < HBM_ELEMENT_COUNT; i++) {
-		if (HBM_allElements[i] != NULL)
+		if (HBM_allElements[i] != NULL && HBM_allElements[i]->Visible)
 			HBM_allElements[i]->Draw();
 	}
 
@@ -829,6 +847,7 @@ static void HBM_Update()
 			**********************************************************/
 			case HBM_OPENING:
 			case HBM_CLOSING:
+				if (HBM_Settings.Stage == HBM_STAGE_MAIN)
 				{
 					// HBM_ConsolePrintf2("progress: %.3f, Top Y: %d, Bottom Y: %d", HBM_timeElapsed / 0.3333, HBM_topHeader.Y, HBM_bottomHeader.Y);
 					HBM_TimeUpdate();
@@ -844,6 +863,9 @@ static void HBM_Update()
 						HBM_SlideAnimation(HBM_Settings.Status == HBM_CLOSING ? 1 - (HBM_timeElapsed / 0.3333) : HBM_timeElapsed / 0.3333);
 						if (HBM_Settings.Status == HBM_CLOSING) HBM_SoundSetVolume(1 - (HBM_timeElapsed / 0.3333));
 					}
+				}
+				else {
+					HBM_Settings.Status = HBM_Settings.Status == HBM_CLOSING ? HBM_CLOSED : HBM_OPEN;
 				}
 				break;
 
@@ -866,12 +888,24 @@ static void HBM_Update()
 							frameCount = 0;
 						}
 						// HBM_ConsolePrintf2("FPS: %2d - %d x %d, scaled %.3f x %.3f", FPS, HBM_Settings.Width, HBM_Settings.Height, HBM_Settings.ScaleX, HBM_Settings.ScaleY);
-						// HBM_ConsolePrintf2("FPS: %2d, int: %d, time: %.2f", FPS, (int)HBM_Settings.InteractionLayer, HBM_timeElapsed);
+						// HBM_ConsolePrintf2("FPS: %2d, stages: %4x, time: %.2f", FPS, (int)HBM_Settings.Stage, HBM_timeElapsed);
 						HBM_ConsolePrintf2("FPS: %2d", FPS);
 					}
 					#endif
 
-					if (HBM_Settings.InteractionLayer == HBM_INTERACTION_MAIN || HBM_Settings.InteractionLayer == HBM_INTERACTION_WPAD) {
+					if (!(HBM_Settings.Stage & HBM_STAGE_BLOCKED)) {
+						// Hold for five seconds to show About prompt
+						if ((WPAD_ButtonsHeld(0) & WPAD_BUTTON_1) && (WPAD_ButtonsHeld(0) & WPAD_BUTTON_2)) {
+							if (HBM_aboutTime <= 0) {
+								HBM_aboutTime = ((f64)HBM_GETTIME / 1000.0F);
+							} else if (((f64)HBM_GETTIME / 1000.0F) >= HBM_aboutTime + 5.0) {
+								HBM_aboutTime = 0;
+								HBM_PromptAbout();
+							}
+						} else if (HBM_aboutTime > 0) {
+							HBM_aboutTime = 0;
+						}
+
 						if (WPAD_ButtonsDown(0) & WPAD_BUTTON_1)
 							HBM_SetWidescreen(HBM_Settings.Widescreen ? false : true);
 						else if (WPAD_ButtonsDown(0) & WPAD_BUTTON_B)
@@ -892,9 +926,18 @@ static void HBM_Update()
 
 					for (int i = 0; i < HBM_MAX_POINTERS; i++)
 					{
-						if (WPAD_ButtonsDown(i) & (WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME)
-							&& HBM_Settings.InteractionLayer == HBM_INTERACTION_MAIN)
-							HBM_topHeader.Call();
+						if (WPAD_ButtonsDown(i) & (WPAD_BUTTON_HOME | WPAD_CLASSIC_BUTTON_HOME)) {
+							switch (HBM_Settings.Stage) {
+								default:
+									break;
+								case HBM_STAGE_MAIN:
+									HBM_topHeader.Call();
+									break;
+								case HBM_STAGE_WPAD:
+									HBM_bottomHeader.Call();
+									break;
+							}
+						}
 					}
 
 					for (int i = 0; i < HBM_ELEMENT_COUNT; i++) {
@@ -931,7 +974,11 @@ void HBM_Menu()
 	{
 		if (HBM_BeforeShowMenu != NULL) HBM_BeforeShowMenu();
 
+		// Declare elements and values
 		HBM_clearValues();
+		HBM_elementLoad();
+		HBM_elementSetup();
+		HBM_elementPositions();
 		HBM_SetLanguage(HBM_Settings.Language);
 
 		// Init console
@@ -954,18 +1001,13 @@ void HBM_Menu()
 		// GX_SetScissorBoxOffset(0, 0);
 		// GX_SetScissor(0, 0, HBM_Settings.Width, HBM_Settings.Height);
 
-		// Declare elements
-		HBM_elementLoad();
-		HBM_elementSetup();
-		HBM_elementPositions();
-
 		// Init system power callbacks
 		origPowerCallback = SYS_SetPowerCallback(HBM_HandleShutdown);
 		origResetCallback = SYS_SetResetCallback(HBM_HandleReset);
 		WPAD_SetPowerButtonCallback(HBM_HandleWPADShutdown);
 
 		HBM_PointerInit();
-		HBM_Settings.InteractionLayer = HBM_INTERACTION_MAIN;
+		HBM_Settings.Stage = HBM_STAGE_MAIN;
 		HBM_Settings.Status = HBM_OPENING;
 
 		// Main loop
@@ -1004,7 +1046,7 @@ void HBM_Menu()
 		HBM_noHomeIcon.SetPosition(50, /*42*/54);
 		HBM_noHomeIcon.Visible = true;
 
-		HBM_Settings.Status = HBM_BLOCKED;
+		HBM_Settings.Status = HBM_NOHOME;
 	}
 }
 
@@ -1022,7 +1064,7 @@ void HBM_DrawNoHome()
 {
 	if (!HBM_initialized || HBM_Settings.Host_TEVSTAGE0 < 0 || HBM_Settings.Host_TEX0 < 0) return;
 
-	if (HBM_Settings.Status == HBM_BLOCKED)
+	if (HBM_Settings.Status == HBM_NOHOME)
 	{
 		if (HBM_timeStopwatch < 0)
 			HBM_timeStopwatch = ((f64)HBM_GETTIME / 1000.0F);

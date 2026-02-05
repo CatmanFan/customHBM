@@ -20,5 +20,6 @@ void HBM_DrawText(const char* string,
 					int max_width = 0,
 					int max_height = 0);
 int HBM_MeasureText(const char* string, float size, bool use_serif, bool return_height);
+bool HBM_CheckMultilineText(const char* string);
 
 #endif

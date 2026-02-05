@@ -1,0 +1,83 @@
+msgid "HOME Menu"
+msgstr "HOME menua"
+
+msgid "Wii Menu"
+msgstr "Wii menua"
+
+msgid "Reset"
+msgstr "Berrabiarazi"
+
+msgid "Operations Guide"
+msgstr "Gidaliburua"
+
+msgid "Close"
+msgstr "Itxi"
+
+msgid "Wii Remote Settings"
+msgstr "Wiimote-ren ezarpenak"
+
+msgid "Close Wii Remote Settings"
+msgstr "Wiimote-ren ezarpenak itxi"
+
+msgid "Volume"
+msgstr "Bolumena"
+
+msgid "Rumble"
+msgstr "Bibrazioa"
+
+msgid "On"
+msgstr ""
+
+msgid "Off"
+msgstr ""
+
+msgid "Connection"
+msgstr "Konexioa"
+
+msgid "Reconnect"
+msgstr "Konexioa berria"
+
+msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
+msgstr "Sakatu aldi berean ① eta ②\nWiimote bakoitzean jokalarien\nordenan."
+
+msgid "Disconnecting..."
+msgstr "Deskonektatzen..."
+
+msgid "Return to the Wii Menu?"
+msgstr "Wii-menura itzuli nahi duzu?"
+
+msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
+msgstr "Wii-menura itzuli nahi duzu?\n(Gorde gabeko datuak galduko dira.)"
+
+msgid "Reset the software?"
+msgstr "Programa berrabiarazi nahi duzu?"
+
+msgid "Reset the software? (Anything not saved will be lost.)"
+msgstr "Programa berrabiarazi nahi duzu?\n(Gorde gabeko datuak galduko dira.)"
+
+msgid "This will quit the game. Proceed? (Anything not saved will be lost.)"
+msgstr "Jokoa utziko du.\nJarraitu nahi duzu?\n(Gorde gabeko datuak galduko dira.)"
+
+msgid "This feature is currently unavailable."
+msgstr "Funtzionalitate hau oraindik\nez dago erabilgarri."
+
+msgid "Yes"
+msgstr "Bai"
+
+msgid "No"
+msgstr "Ez"
+
+msgid "OK"
+msgstr "Ados"
+
+msgid "P1"
+msgstr "J1"
+
+msgid "P2"
+msgstr "J2"
+
+msgid "P3"
+msgstr "J3"
+
+msgid "P4"
+msgstr "J4"

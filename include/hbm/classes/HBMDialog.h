@@ -6,7 +6,6 @@ class HBMDialog : public HBMElement {
 		class HBMDialogButton Button1;
 		class HBMDialogButton Button2;
 		int Status;
-		bool Active;
 
 	public:
 		HBMDialog();
@@ -15,6 +14,7 @@ class HBMDialog : public HBMElement {
 		void (*Confirm)();
 		const char* Text;
 		bool SlideFromTop;
+		bool AltAppearance;
 
 		void Draw() override;
 		void Update() override;

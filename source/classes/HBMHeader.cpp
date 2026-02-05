@@ -68,22 +68,21 @@ void HBMHeader::Draw() {
 		// Draw bottom Wii Remote
 		if (this->WiiRemote != NULL) {
 			this->WiiRemote->Draw(29 + (HBM_Settings.Widescreen ? 118.75 : 0),
-								  this->Y - (HBM_Settings.InteractionLayer == HBM_INTERACTION_WPAD
-																		   ? 32 + (300 * this->WiiRemoteSlider)
-																		   : 16 + (16 * this->WiiRemoteSlider)));
+								  this->Y - (HBM_Settings.Stage == HBM_STAGE_WPAD ? 32 + (300 * this->WiiRemoteSlider)
+																				  : 16 + (16 * this->WiiRemoteSlider)));
 		}
 	}
 }
 
 void HBMHeader::Call() {
-	HBM_Settings.InteractionLayer = HBM_INTERACTION_BLOCKED;
+	HBM_Settings.Stage |= HBM_STAGE_BLOCKED;
 
 	this->Status = 2;
 	this->SetAnimation(2, true);
 	if (this->Inverted) {
 		HBM_SOUND(HBM_sfx_menuclose_pcm, false);
 	}
-	else if (HBM_Settings.InteractionLayer == HBM_INTERACTION_WPAD) {
+	else if (HBM_Settings.Stage == HBM_STAGE_WPAD) {
 		HBM_SOUND(HBM_sfx_cancel_pcm, false);
 	}
 	else {
@@ -138,14 +137,12 @@ void HBMHeader::Update() {
 				this->MaskOpacity = 1 - this->TimerProgress(0.1667, 0.3167);
 			}
 			else {
-				if (HBM_Settings.InteractionLayer == HBM_INTERACTION_BLOCKED)
-					HBM_Settings.InteractionLayer = HBM_INTERACTION_MAIN;
-
 				this->HighlightedOpacity = this->WiiRemote != NULL ? 1 : 0;
 				this->MaskOpacity = 0;
 				this->SetAnimation(/* stop */);
 				this->Status = this->WiiRemote != NULL ? 1 : 0;
 
+				HBM_Settings.Stage &= ~HBM_STAGE_BLOCKED;
 				if (this->AfterSelected != NULL) this->AfterSelected();
 			}
 			break;
@@ -154,7 +151,7 @@ void HBMHeader::Update() {
 	/*******************
 	 * Status control
 	 *******************/
-	u8 chan = this->HitboxStatus(this->Status != 2 && HBM_Settings.InteractionLayer == HBM_INTERACTION_MAIN);
+	u8 chan = this->HitboxStatus(this->Status != 2 && HBM_Settings.Stage == HBM_STAGE_MAIN);
 	switch ((chan >> 4) & 0x0F) {
 		case 0: // Hovering
 			if (this->Status != 1) {

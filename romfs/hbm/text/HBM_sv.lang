@@ -1,8 +1,8 @@
 msgid "HOME Menu"
-msgstr "HOME-meny"
+msgstr "HOME-menyn"
 
 msgid "Wii Menu"
-msgstr "Wii-meny"
+msgstr "Wii-menyn"
 
 msgid "Reset"
 msgstr "Återställ"
@@ -14,10 +14,10 @@ msgid "Close"
 msgstr "Stäng"
 
 msgid "Wii Remote Settings"
-msgstr "Inställningar för Wii-fjärrkontrollerna"
+msgstr "Wii-fjärrkontrollens inställningar"
 
 msgid "Close Wii Remote Settings"
-msgstr "Tillbaka"
+msgstr "Stäng inställningarna"
 
 msgid "Volume"
 msgstr "Volym"
@@ -41,22 +41,22 @@ msgid "Simultaneously press ① and ② on each Wii Remote in the desired player
 msgstr "Tryck samtidigt på ① och ② på\nvarje Wii-fjärrkontroll i\nönskad spelarnummerordning."
 
 msgid "Disconnecting..."
-msgstr "Kopplar från..."
+msgstr "Kopplar ifrån..."
 
 msgid "Return to the Wii Menu?"
 msgstr "Återgå till Wii-menyn?"
 
 msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
-msgstr "Återgå till Wii-menyn?\n(Alla data som inte sparats\ngår förlorade.)"
+msgstr "Återgå till Wii-menyn?\n(Data som inte sparats\ngår förlorade.)"
 
 msgid "Reset the software?"
 msgstr "Starta om programmet?"
 
 msgid "Reset the software? (Anything not saved will be lost.)"
-msgstr "Starta om programmet?\n(Alla data som inte sparats\ngår förlorade.)"
+msgstr "Starta om programmet?\n(Data som inte sparats\ngår förlorade.)"
 
 msgid "This will quit the game. Proceed? (Anything not saved will be lost.)"
-msgstr "Detta avslutar spelet. Fortsätta?\n(Alla data som inte sparats\ngår förlorade.)"
+msgstr "Detta avslutar spelet. Fortsätta?\n(Data som inte sparats\ngår förlorade.)"
 
 msgid "This feature is currently unavailable."
 msgstr "Den här artikeln har ännu\ninte implementerats."

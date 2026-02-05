@@ -18,15 +18,39 @@ HBMButtonMain::HBMButtonMain() : HBMButton::HBMButton() {
 	this->ShadowOpacity = 0.58;
 	this->ShadowX = this->ShadowY = 5;
 
-	// Set text color
-	this->TextWidth = 240;
-	this->TextColor = 0x202E65FF;
-	this->TextSize = 26;
-	this->TextOverMask = true;
-
 	this->Selected = NULL;
 	this->Blocked = false;
 	this->TimerStop();
+}
+
+void HBMButtonMain::Draw() {
+	HBMElement::Draw();
+
+	// Draw mask
+	if (this->MaskOpacity > 0) {
+		this->Mask.ScaleX = this->Image.ScaleX;
+		this->Mask.ScaleY = this->Image.ScaleY;
+		this->Mask.A = lround(255 * this->MaskOpacity);
+		this->Mask.Draw(this->X + this->Image.GetX(), this->Y + this->Image.GetY());
+	}
+
+	// Draw text
+	if (this->Image.A > 0 && this->Visible) {
+		HBM_DrawText
+		(
+			/* text */		this->Text,
+			/* X */			this->X + (this->Image.GetWidth() / 2),
+			/* Y */			this->Y + (HBM_CheckMultilineText(this->Text) ? 48 : 49),
+			/* size */		26,
+			/* scaleX */	this->Scale,
+			/* scaleY */	this->Scale,
+			/* align */		HBM_TEXT_CENTER, HBM_TEXT_MIDDLE,
+			/* serif */		false,
+			/* color */		32, 46, 101, this->Image.A,
+			/* maxWidth */	240,
+			/* maxHeight */	64
+		);
+	}
 }
 
 void HBMButtonMain::UpdateScale() {
@@ -82,8 +106,7 @@ void HBMButtonMain::Update() {
 				}
 			}
 			else {
-				if (HBM_Settings.InteractionLayer == HBM_INTERACTION_BLOCKED)
-					HBM_Settings.InteractionLayer = HBM_INTERACTION_MAIN;
+				HBM_Settings.Stage &= ~HBM_STAGE_BLOCKED;
 				this->Substatus = 0;
 				this->Status = 1;
 				this->TimerStop();
@@ -94,7 +117,7 @@ void HBMButtonMain::Update() {
 	/*******************
 	 * Status control
 	 *******************/
-	u8 chan = this->HitboxStatus(this->Status != 2 && HBM_Settings.InteractionLayer == HBM_INTERACTION_MAIN);
+	u8 chan = this->HitboxStatus(this->Status != 2 && HBM_Settings.Stage == HBM_STAGE_MAIN);
 	switch ((chan >> 4) & 0x0F) {
 		case 0: // Hovering
 			if (this->Status != 1) {
@@ -108,7 +131,7 @@ void HBMButtonMain::Update() {
 		case 1: // Pressed
 			if (this->Status != 2) {
 				HBM_SOUND(HBM_sfx_select_pcm, false);
-				HBM_Settings.InteractionLayer = HBM_INTERACTION_BLOCKED;
+				HBM_Settings.Stage |= HBM_STAGE_BLOCKED;
 				this->TimerStart();
 				this->Status = 2;
 			}
