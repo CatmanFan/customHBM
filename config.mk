@@ -16,12 +16,6 @@
 #   1 - ASNDLib
 HBM_SOUND_OUTPUT := 1
 
-# HBM_ENABLE_ROMFS - enables using ROMFS storage for fonts and language files.
-#   This requires libromfs-ogc (https://github.com/NateXS/libromfs-ogc) to be included in your target project's makefile.
-#   You will also have to include the romfs/hbm directory in your target project.
-#   Do not comment this, set it to either 0 or 1.
-HBM_ENABLE_ROMFS := 1
-
 #==============================================================================#
 
 #==============================#
@@ -36,12 +30,6 @@ HBM_ENABLE_ROMFS := 1
 # HBM_FORCE_ASPECT_RATIO - forces a certain language option
 #   by default this is set to English, check include/hbm.h for a list of full language options.
 # HBM_LANGUAGE := 1
-
-# HBM_UNSAVED - determines whether to show the "unsaved data" message by default.
-#   0 - disabled
-#   1 - disabled for "Wii Menu", enabled for "Reset"
-#   2 - enabled for both
-HBM_UNSAVED := 0
 
 #==============================================================================#
 
@@ -64,10 +52,6 @@ HBM_UNSAVED := 0
 
 # Preprocessor definitions
 HBM_DEFINES :=
-
-ifeq ($(HBM_ENABLE_ROMFS),1)
-	HBM_DEFINES += HBM_ENABLE_ROMFS=1 
-endif
 
 ifeq ($(HBM_FORCE_ASPECT_RATIO),0)
 	HBM_DEFINES += HBM_FORCE_ASPECT_RATIO=0 

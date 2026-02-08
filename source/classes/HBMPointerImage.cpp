@@ -1,7 +1,6 @@
-#include "hbm.h"
+#include "hbm/hbm.h"
 
 HBMPointerImage::HBMPointerImage() {
-	this->Shadow.R = this->Shadow.G = this->Shadow.B = 0;
 	this->ShadowOpacity = 0.33;
 	this->ShadowX = this->ShadowY = 4;
 
@@ -33,10 +32,10 @@ void HBMPointerImage::Load(int num, HBMPointerImage *first) {
 		if (this->first)
 			this->Shadow.LoadPNG(&HBM_cursor_shadow_png, 44, 64);
 		else
-			this->Shadow.LoadRaw(first->Shadow.GetImage(), 44, 64);
+			this->Shadow.LoadRaw(first->Shadow.Img, 44, 64);
 
-		this->Image.SetAnchorPoint(9, 27);
-		this->Shadow.SetAnchorPoint(9, 27);
+		this->Image.AnchorPoint = {9, 27};
+		this->Shadow.AnchorPoint = {9, 27};
 
 		this->loaded = true;
 	}

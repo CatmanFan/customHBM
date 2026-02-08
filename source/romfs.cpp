@@ -1,7 +1,4 @@
-#include "hbm.h"
-
-#ifdef HBM_ENABLE_ROMFS
-
+#include "hbm/hbm.h"
 #include <romfs-ogc.h>
 
 HBMRomfsFile::HBMRomfsFile() {
@@ -86,18 +83,4 @@ u8 * HBMRomfsFile::Data() {
 size_t HBMRomfsFile::Size() {
 	return this->size;
 
-}
-
-#endif
-
-void HBM_RomfsInit() {
-#ifdef HBM_ENABLE_ROMFS
-	romfsInit();
-#endif
-}
-
-void HBM_RomfsUninit() {
-#ifdef HBM_ENABLE_ROMFS
-	romfsExit();
-#endif
 }

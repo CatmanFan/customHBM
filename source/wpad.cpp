@@ -1,4 +1,4 @@
-#include "hbm.h"
+#include "hbm/hbm.h"
 #include "hbm/extern.h"
 
 #define HBM_CC_MIN_MAGNITUDE 0.2f

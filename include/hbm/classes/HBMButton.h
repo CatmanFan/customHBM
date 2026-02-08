@@ -5,6 +5,7 @@
 class HBMButton : public HBMElement {
 	protected:
 		// u8 Status;
+		u8 Substatus;
 		f32 AnimationProgress;
 		class HBMImage Mask;
 		float MaskOpacity;
@@ -19,7 +20,6 @@ class HBMButton : public HBMElement {
 
 		void Draw() override;
 		void Update() override;
-		u8 GetStatus();
 };
 
 #endif

@@ -1,11 +1,9 @@
-#include "hbm.h"
+#include "hbm/hbm.h"
 #include "hbm/extern.h"
 
 #define HBM_HEADER_FADE_TIME (this->WiiRemote != NULL ? 0.150 : 0.0667)
 
 HBMHeader::HBMHeader() : HBMElement::HBMElement() {
-	this->SetHitbox(0, 0, (HBM_Settings.Widescreen ? 832 : HBM_WIDTH), 100);
-
 	// Load images
 	this->Image.LoadPNG(&HBM_header_png, 40, 100);
 	this->Highlighted.LoadPNG(&HBM_headerHighlighted_png, 40, 100);
@@ -38,7 +36,7 @@ void HBMHeader::Draw() {
 
 		// Draw highlighted sprite
 		if (this->HighlightedOpacity > 0) {
-			this->Highlighted.A = lround(255 * this->HighlightedOpacity);
+			this->Highlighted.Color.A = lround(255 * this->HighlightedOpacity);
 			this->Highlighted.Draw((HBM_Settings.Widescreen ? HBM_WIDTH * HBM_WIDESCREEN_RATIO : HBM_WIDTH) / 2, this->Y);
 		}
 
@@ -142,11 +140,18 @@ void HBMHeader::Update() {
 				this->SetAnimation(/* stop */);
 				this->Status = this->WiiRemote != NULL ? 1 : 0;
 
-				HBM_Settings.Stage &= ~HBM_STAGE_BLOCKED;
-				if (this->AfterSelected != NULL) this->AfterSelected();
+				if (this->AfterSelected != NULL)
+					this->AfterSelected();
+				else
+					HBM_Settings.Stage &= ~HBM_STAGE_BLOCKED;
 			}
 			break;
 	}
+
+	if (HBM_Settings.Widescreen && this->Hitbox.Width != 832)
+		this->Hitbox = {0, 0, (HBM_Settings.Widescreen ? 832 : HBM_WIDTH), 100};
+	else if (!HBM_Settings.Widescreen && this->Hitbox.Width != HBM_WIDTH)
+		this->Hitbox = {0, 0, HBM_WIDTH, 100};
 
 	/*******************
 	 * Status control

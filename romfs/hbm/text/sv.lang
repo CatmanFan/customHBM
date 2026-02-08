@@ -5,7 +5,7 @@ msgid "Wii Menu"
 msgstr "Wii-menyn"
 
 msgid "Reset"
-msgstr "Återställ"
+msgstr "Starta om"
 
 msgid "Operations Guide"
 msgstr "Elektroniska\nbruksanvisning"
@@ -35,7 +35,7 @@ msgid "Connection"
 msgstr "Parkoppling"
 
 msgid "Reconnect"
-msgstr "Ändra parkopplingen"
+msgstr "Ny parkoppling"
 
 msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
 msgstr "Tryck samtidigt på ① och ② på\nvarje Wii-fjärrkontroll i\nönskad spelarnummerordning."
@@ -50,10 +50,10 @@ msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
 msgstr "Återgå till Wii-menyn?\n(Data som inte sparats\ngår förlorade.)"
 
 msgid "Reset the software?"
-msgstr "Starta om programmet?"
+msgstr "Starta programmet på nytt?"
 
 msgid "Reset the software? (Anything not saved will be lost.)"
-msgstr "Starta om programmet?\n(Data som inte sparats\ngår förlorade.)"
+msgstr "Starta programmet på nytt?\n(Data som inte sparats\ngår förlorade.)"
 
 msgid "This will quit the game. Proceed? (Anything not saved will be lost.)"
 msgstr "Detta avslutar spelet. Fortsätta?\n(Data som inte sparats\ngår förlorade.)"

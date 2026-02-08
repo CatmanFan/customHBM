@@ -1,4 +1,4 @@
-#include "hbm.h"
+#include "hbm/hbm.h"
 #include "hbm/extern.h"
 
 HBMButton::HBMButton() : HBMElement::HBMElement() {
@@ -18,8 +18,4 @@ void HBMButton::Draw() {
 
 void HBMButton::Update() {
 	// Your code here
-}
-
-u8 HBMButton::GetStatus() {
-	return this->Status;
 }

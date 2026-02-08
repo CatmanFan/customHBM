@@ -156,7 +156,7 @@ class HBMElement {
 
 	public:
 		HBMElement();
-		~HBMElement();
+		virtual ~HBMElement();
 
 		class HBMImage Image;
 		bool Visible; // If the element should be drawn
@@ -167,13 +167,6 @@ class HBMElement {
 		virtual void Draw();
 		virtual void Update();
 		void SetOpacity(float value);
-		void SetHitbox(int w, int h);
-		void SetHitbox(int x, int y, int w, int h);
-		void SetHitbox2(int w, int h);
-		void SetHitbox2(int x, int y, int w, int h);
-		void SetPosition(int x, int y);
-		int GetX();
-		int GetY();
 };
 
 #endif

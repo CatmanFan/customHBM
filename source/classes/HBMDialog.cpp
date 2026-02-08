@@ -1,4 +1,4 @@
-#include "hbm.h"
+#include "hbm/hbm.h"
 #include "hbm/extern.h"
 
 #define HBM_DIALOG_TRANSITION_TIME 0.390F
@@ -12,8 +12,8 @@
 
 HBMDialog::HBMDialog() {
 	this->Image.LoadPNG(&HBM_dialogBG_png, 522, 366);
-	this->Image.SetAnchorPoint(255.5, 177.5);
-	this->SetHitbox(0, 0, 0, 0);
+	this->Image.AnchorPoint = {255.5, 177.5};
+	this->Hitbox = {0, 0, 0, 0};
 	this->ShadowOpacity = 0;
 	this->Visible = true;
 	this->Reset();

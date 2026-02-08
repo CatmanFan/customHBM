@@ -1,4 +1,4 @@
-#include "hbm.h"
+#include "hbm/hbm.h"
 #include "hbm/extern.h"
 #include <wchar.h>
 #include <iostream>
@@ -66,9 +66,7 @@ typedef struct HBM_ttfFont {
 
 static FT_Library ftLibrary;			/* handle to library     */
 static HBM_Font *sansSerif, *serif;		/* handle to face object */
-#ifdef HBM_ENABLE_ROMFS
 static HBMRomfsFile sansSerifFile, serifFile;
-#endif
 
 #ifdef HBM_USE_MAP_FOR_GLYPHS
 	static std::map<wchar_t, HBM_Glyph> sansSerifGlyphs, serifGlyphs;
@@ -372,13 +370,14 @@ static int HBM_TextStringMeasure(HBM_TextString *myText, HBM_Font *myFont, bool 
 		// Use FT_Load_Char?
 		const FT_UInt glyphIndex = FT_Get_Char_Index(myFont->face, myText->utf32[i]);
 
-		// Skip if a space character
+		// Skip if a space character and valid custom width
 		if (myText->utf32[i] == L' ' && myFont->customSpaceWidth > 0) {
 			lineWidth += myFont->customSpaceWidth;
 			previousGlyph = glyphIndex;
 			continue;
 		}
-		if (myText->utf32[i] == L' ' && myFont->shortSpaceWidth > 0) { // short
+		// Skip if a short space character and valid width
+		if (myText->utf32[i] == L' ' && myFont->shortSpaceWidth > 0) { // 
 			lineWidth += myFont->shortSpaceWidth;
 			previousGlyph = glyphIndex;
 			continue;
@@ -396,9 +395,9 @@ static int HBM_TextStringMeasure(HBM_TextString *myText, HBM_Font *myFont, bool 
 		if (myFont->letterSpaceWidth > 0 && i >= 1 && HBM_CHECK_GLYPH_LATIN(myText->utf32[i]))
 			lineWidth += myFont->letterSpaceWidth;
 
-		lineWidth += HBM_CHECK_GLYPH_SPACE(myText->utf32[i]) ? (slot->advance.x / 64.0f)
-				   : HBM_CHECK_GLYPH_CYRILLIC_GREEK(myFont, myText->utf32[i]) ? HBM_ADJUST_FONT_FOR_SPACING(myFont, slot->bitmap.width)
-				   : HBM_ADJUST_FONT_FOR_SPACING(myFont, slot->advance.x / 64.0f);
+		lineWidth += HBM_CHECK_GLYPH_SPACE(myText->utf32[i]) ? (slot->advance.x >> 6)
+				   : HBM_CHECK_GLYPH_CYRILLIC_GREEK(myFont, myText->utf32[i]) ? HBM_ADJUST_FONT_FOR_SPACING(myFont, lround(slot->advance.x / 1.5) >> 6)
+				   : HBM_ADJUST_FONT_FOR_SPACING(myFont, slot->advance.x >> 6);
 
 		if (myText->utf32[i] == L' ' && myFont->extraSpaceWidth > 0)
 			lineWidth += myFont->extraSpaceWidth;
@@ -550,8 +549,8 @@ static void HBM_TextStringDraw (HBM_TextString *myText,
 		GX_SetVtxDesc (GX_VA_TEX0, GX_NONE);
 		/************************************/
 
-		penX += HBM_CHECK_GLYPH_CYRILLIC_GREEK(myFont, myText->utf32[i]) ? HBM_ADJUST_FONT_FOR_SPACING(myFont, glyphData->width + 2)
-			  : HBM_ADJUST_FONT_FOR_SPACING(myFont, glyphData->advance / 64.0f);
+		penX += HBM_CHECK_GLYPH_CYRILLIC_GREEK(myFont, myText->utf32[i]) ? HBM_ADJUST_FONT_FOR_SPACING(myFont, lround(glyphData->advance / 1.5) >> 6)
+			  : HBM_ADJUST_FONT_FOR_SPACING(myFont, glyphData->advance >> 6);
 		previousGlyph = glyphIndex;
 	}
 }
@@ -670,32 +669,13 @@ static void HBM_FontFreeTTF(HBM_Font *myFont)
  *               PUBLIC FONT FUNCTIONS                *
  ******************************************************/
 
-#ifndef HBM_ENABLE_ROMFS
-extern const uint8_t HBM_font_serif_ttf[];
-extern const uint8_t HBM_font_serif_ttf_end[];
-extern const uint8_t HBM_font_sansserif_ttf[];
-extern const uint8_t HBM_font_sansserif_ttf_end[];
-extern const uint8_t HBM_font_zh_sansserif_ttf[];
-extern const uint8_t HBM_font_zh_sansserif_ttf_end[];
-extern const uint8_t HBM_font_ko_serif_ttf[];
-extern const uint8_t HBM_font_ko_serif_ttf_end[];
-extern const uint8_t HBM_font_ko_sansserif_ttf[];
-extern const uint8_t HBM_font_ko_sansserif_ttf_end[];
-extern const uint8_t HBM_font_zgh_serif_ttf[];
-extern const uint8_t HBM_font_zgh_serif_ttf_end[];
-extern const uint8_t HBM_font_zgh_sansserif_ttf[];
-extern const uint8_t HBM_font_zgh_sansserif_ttf_end[];
-#endif
-
 void HBM_FontUninit()
 {
 	if (fontType != -1) {
 		HBM_FontFreeTTF(sansSerif);
 		HBM_FontFreeTTF(serif);
-		#ifdef HBM_ENABLE_ROMFS
-			sansSerifFile.Free();
-			serifFile.Free();
-		#endif
+		sansSerifFile.Free();
+		serifFile.Free();
 		FT_Done_FreeType(ftLibrary);
 		fontType = -1;
 	}
@@ -716,59 +696,35 @@ bool HBM_FontInit(int type)
 				break;
 
 			case 0: // International
-				#ifdef HBM_ENABLE_ROMFS
-					sansSerifFile.Load("romfs:/hbm/ttf/HBM_font_sansserif.ttf");
-					serifFile.Load("romfs:/hbm/ttf/HBM_font_serif.ttf");
-				#else
-					sansSerif = HBM_FontLoadTTF(HBM_font_sansserif_ttf, (size_t)HBM_font_sansserif_ttf_end - (size_t)HBM_font_sansserif_ttf);
-					serif = HBM_FontLoadTTF(HBM_font_serif_ttf, (size_t)HBM_font_serif_ttf_end - (size_t)HBM_font_serif_ttf);
-				#endif
+				sansSerifFile.Load("romfs:/hbm/ttf/sansserif.ttf");
+				serifFile.Load("romfs:/hbm/ttf/serif.ttf");
 				break;
 
 			case 1: // Hanzi
-				#ifdef HBM_ENABLE_ROMFS
-					sansSerifFile.Load("romfs:/hbm/ttf/HBM_font_zh_sansserif.ttf");
-					serifFile.Load("romfs:/hbm/ttf/HBM_font_serif.ttf");
-				#else
-					sansSerif = HBM_FontLoadTTF(HBM_font_zh_sansserif_ttf, (size_t)HBM_font_zh_sansserif_ttf_end - (size_t)HBM_font_zh_sansserif_ttf);
-					serif = HBM_FontLoadTTF(HBM_font_serif_ttf, (size_t)HBM_font_serif_ttf_end - (size_t)HBM_font_serif_ttf);
-				#endif
+				sansSerifFile.Load("romfs:/hbm/ttf/sansserif_zh.ttf");
+				serifFile.Load("romfs:/hbm/ttf/serif.ttf");
 				break;
 
 			case 2: // Korean
-				#ifdef HBM_ENABLE_ROMFS
-					sansSerifFile.Load("romfs:/hbm/ttf/HBM_font_ko_sansserif.ttf");
-					serifFile.Load("romfs:/hbm/ttf/HBM_font_ko_serif.ttf");
-				#else
-					sansSerif = HBM_FontLoadTTF(HBM_font_ko_sansserif_ttf, (size_t)HBM_font_ko_sansserif_ttf_end - (size_t)HBM_font_ko_sansserif_ttf);
-					serif = HBM_FontLoadTTF(HBM_font_ko_serif_ttf, (size_t)HBM_font_ko_serif_ttf_end - (size_t)HBM_font_ko_serif_ttf);
-				#endif
+				sansSerifFile.Load("romfs:/hbm/ttf/sansserif_ko.ttf");
+				serifFile.Load("romfs:/hbm/ttf/serif_ko.ttf");
 				break;
 
 			case 3: // Tifinagh
-				#ifdef HBM_ENABLE_ROMFS
-					sansSerifFile.Load("romfs:/hbm/ttf/HBM_font_zgh_sansserif.ttf");
-					serifFile.Load("romfs:/hbm/ttf/HBM_font_zgh_serif.ttf");
-				#else
-					sansSerif = HBM_FontLoadTTF(HBM_font_zgh_sansserif_ttf, (size_t)HBM_font_zgh_sansserif_ttf_end - (size_t)HBM_font_zgh_sansserif_ttf);
-					serif = HBM_FontLoadTTF(HBM_font_zgh_serif_ttf, (size_t)HBM_font_zgh_serif_ttf_end - (size_t)HBM_font_zgh_serif_ttf);
-				#endif
+				sansSerifFile.Load("romfs:/hbm/ttf/sansserif_zgh.ttf");
+				serifFile.Load("romfs:/hbm/ttf/serif_zgh.ttf");
 				break;
 		}
 
-		#ifdef HBM_ENABLE_ROMFS
-			sansSerif = HBM_FontLoadTTF(sansSerifFile.Data(), sansSerifFile.Size());
-			serif = HBM_FontLoadTTF(serifFile.Data(), serifFile.Size());
-		#endif
+		sansSerif = HBM_FontLoadTTF(sansSerifFile.Data(), sansSerifFile.Size());
+		serif = HBM_FontLoadTTF(serifFile.Data(), serifFile.Size());
 
 		if (sansSerif == NULL || serif == NULL) {
 			// Failed to load either font, stop
 			HBM_FontFreeTTF(sansSerif);
 			HBM_FontFreeTTF(serif);
-			#ifdef HBM_ENABLE_ROMFS
-				sansSerifFile.Free();
-				serifFile.Free();
-			#endif
+			sansSerifFile.Free();
+			serifFile.Free();
 			FT_Done_FreeType(ftLibrary);
 			return false;
 		}

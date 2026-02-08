@@ -26,17 +26,10 @@ INCLUDES	:=	include
 SOURCES		:=	source source/classes
 DATA		:=	source/files/png source/files/sfx
 
-# Needed for HBM_ENABLE_ROMFS
 ifneq ($(BUILD),$(notdir $(CURDIR)))
 include	$(CURDIR)/config.mk
 else
 include	$(CURDIR)/../config.mk
-endif
-
-ifeq ($(HBM_ENABLE_ROMFS),1)
-# ROMFS		:=  romfs
-else
-DATA		+=	romfs/hbm/ttf romfs/hbm/text
 endif
 
 #---------------------------------------------------------------------------------

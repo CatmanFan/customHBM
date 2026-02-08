@@ -5,10 +5,13 @@ Originally a fork of [libhomemenu](https://github.com/TheProjecter/libhomemenu) 
 
 It contains derived portions of code from the original libhomemenu (license unknown, original source code is attributed above) translated into C++, however the majority of code has been rewritten from scratch. The project also uses portions of code from [Tantric/dborth](https://github.com/dborth)'s [libwiigui](https://github.com/dborth/libwiigui) ([WiiBrew page](http://wiibrew.org/wiki/Libwiigui)), which is licensed under GNU GPL, as well as derived code of [GRRLIB](https://github.com/GRRLIB/GRRLIB)'s (licensed under MIT) TTF drawing functions. I have chosen to license this project under GNU GPL as it is also the same license used in Tantric/dborth's software (Snes9XGX, FCEUGX, VBAGX, WiiMC, ...) as well as in [WiiSXRX](https://github.com/niuus/WiiSXRX) (as GPL-3.0) and [Not64](https://github.com/extremscorner/not64) (as GPL-2.0).
 
-To install this library, you will need **[libromfs-ogc](https://github.com/NateXS/libromfs-ogc)**. (Confirmed, Japanese font will not work without it)
+To install this library, you will need **[libromfs-ogc](https://github.com/NateXS/libromfs-ogc)**. You must include it alongside the HBM library and copy the romfs/hbm directory to your target project.
+
+## To-Do
+- Translate C++ classes to C?
 
 ## Credits
-- This library uses the original Nintendo Wii Menu sounds (ripped using Dolphin to account for the reverb filter) and fonts (designed by Fontworks, DynaFont, AsiaSoft Corp, DXKorea and [Noto](https://github.com/notofonts/tifinagh)). It also makes use of [PNGU](https://wiibrew.org/wiki/PNGU) for rendering the images included, and FreeTypeGX to render the aforementioned fonts.
+- This library uses the original Nintendo Wii Menu sounds (ripped using Dolphin to account for the reverb filter) and fonts (designed by Fontworks, DynaFont, AsiaSoft Corp, DXKorea and [Noto](https://github.com/notofonts/tifinagh)). It also makes use of FreeTypeGX to render the aforementioned fonts, and [PNGU](https://wiibrew.org/wiki/PNGU) for rendering other textures.
 
 ## Languages
 
@@ -16,17 +19,17 @@ This menu is available in the following languages (some localizations have been 
 
 | Name                 | Local Name          | Author(s) / Proofreader(s)                                                                                   |
 |----------------------|---------------------|--------------------------------------------------------------------------------------------------------------|
-| Japanese             | 日本語               | *Nintendo*                                                                                                   |
-| English              | -                   | *Nintendo*                                                                                                   |
-| German               | Deutsch             | *Nintendo*                                                                                                   |
-| French               | Français            | *Nintendo*                                                                                                   |
-| Spanish              | Español             | *Nintendo*                                                                                                   |
-| Italian              | Italiano            | *Nintendo*                                                                                                   |
-| Dutch                | Nederlands          | *Nintendo*                                                                                                   |
-| Korean               | 한국어                | *Nintendo*                                                                                                   |
-| Simplified Chinese   | 简体中文             | *Nintendo / iQue*                                                                                            |
-| Traditional Chinese  | 繁体中文             | *[TVGZone](https://www.bilibili.com/video/BV1D24y1D7S7/)*                                                    |
-| Portuguese           | Português (PT)      | *Mr. Lechkar* (based on official vWii/Wii U manuals and 3DS software)                                        |
+| Japanese             | 日本語               | Nintendo                                                                                                     |
+| English              | -                   | Nintendo                                                                                                     |
+| German               | Deutsch             | Nintendo                                                                                                     |
+| French               | Français            | Nintendo                                                                                                     |
+| Spanish              | Español             | Nintendo                                                                                                     |
+| Italian              | Italiano            | Nintendo                                                                                                     |
+| Dutch                | Nederlands          | Nintendo                                                                                                     |
+| Korean               | 한국어                | Nintendo                                                                                                     |
+| Simplified Chinese   | 简体中文             | Nintendo / iQue                                                                                              |
+| Traditional Chinese  | 繁體中文             | *[TVGZone](https://www.bilibili.com/video/BV1D24y1D7S7/)*                                                    |
+| Portuguese           | Português           | *Mr. Lechkar* (based on official vWii/Wii U manuals and 3DS software)                                        |
 | Brazilian Portuguese | Português do Brasil | *[Angel333119, SergioF (RIP) & Alan L. Carlos](https://www.romhacking.net.br/index.php?topic=1632.0)*        |
 | Russian              | Русский             | *[CaXaP](https://vk.com/ttydrus)* (version used in NSMBWii translation)                                      |
 | Ukrainian            | Українська          | *Mr. Lechkar*                                                                                                |

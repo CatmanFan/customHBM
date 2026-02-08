@@ -1,4 +1,4 @@
-#include "hbm.h"
+#include "hbm/hbm.h"
 #include "hbm/extern.h"
 
 #define HBM_DIALOGBUTTON_NORMAL_SCALE 0.9F
@@ -6,14 +6,14 @@
 HBMDialogButton::HBMDialogButton() : HBMButton::HBMButton() {
 	// Load images
 	this->Image.LoadPNG(&HBM_dialogButton_png, 240, 68);
-	this->Image.SetAnchorPoint(119.5, 33);
-	this->SetHitbox(0, 0, 239, 66);
-	this->ShadowOpacity = 0;
+	this->Image.AnchorPoint = {119.5, 33};
+	this->Hitbox = {0, 0, 239, 66};
 
 	// Load mask
 	this->Mask.LoadPNG(&HBM_dialogButton_mask_png, 240, 68);
-	this->Mask.SetAnchorPoint(119.5, 33);
+	this->Mask.AnchorPoint = {119.5, 33};
 	this->MaskOpacity = 0;
+	this->ShadowOpacity = 0;
 
 	this->Sound = 0;
 	this->Selected = NULL;
@@ -25,7 +25,7 @@ void HBMDialogButton::Draw() {
 	HBMElement::Draw();
 
 	// Draw text
-	if (this->Image.A > 0 && this->Visible) {
+	if (this->Image.Color.A > 0 && this->Visible) {
 		HBM_DrawText
 		(
 			/* text */		this->Text,
@@ -49,8 +49,8 @@ void HBMDialogButton::Draw() {
 	if (this->MaskOpacity > 0) {
 		this->Mask.ScaleX = this->Image.ScaleX;
 		this->Mask.ScaleY = this->Image.ScaleY;
-		this->Mask.A = lround(255 * this->MaskOpacity);
-		this->Mask.Draw(this->X + this->Image.GetX(), this->Y + this->Image.GetY());
+		this->Mask.Color.A = lround(255 * this->MaskOpacity);
+		this->Mask.Draw(this->X + this->Image.X, this->Y + this->Image.Y);
 	}
 }
 

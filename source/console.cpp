@@ -1,4 +1,4 @@
-#include "hbm.h"
+#include "hbm/hbm.h"
 #include "hbm/extern.h"
 #include <cstring>
 #include <stdarg.h>
@@ -72,43 +72,12 @@
 
 	static int HBM_IPLFontProcess(const char *text, bool should_draw, int text_x = 0, int text_y = 0)
 	{
-		if (should_draw) {
-			GX_SetTevOp (GX_TEVSTAGE0, GX_MODULATE);
-			GX_SetVtxDesc (GX_VA_TEX0 /* GX_VA_CLR0 */, GX_DIRECT);
-			GX_SetTexCoordScaleManually(GX_TEXCOORD0, GX_TRUE, 1, 1);
-			GX_LoadTexObj(&IPL_Font.texture, GX_TEXMAP0);
-
-			GX_Begin(GX_QUADS, HBM_GX_VTXFMT, 4);
-				GX_Position2f32(0, 0);
-				GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
-				GX_TexCoord2f32(0, 0);
-
-				GX_Position2f32(IPL_Font.header->sheet_width, 0);
-				GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
-				GX_TexCoord2f32(IPL_Font.header->sheet_width, 0);
-
-				GX_Position2f32(IPL_Font.header->sheet_width, IPL_Font.header->sheet_height);
-				GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
-				GX_TexCoord2f32(IPL_Font.header->sheet_width, IPL_Font.header->sheet_height);
-
-				GX_Position2f32(0, IPL_Font.header->sheet_height);
-				GX_Color4u8(0xFF, 0xFF, 0xFF, 0xFF);
-				GX_TexCoord2f32(0, IPL_Font.header->sheet_height);
-			GX_End();
-
-			GX_SetTexCoordScaleManually(GX_TEXCOORD0, GX_FALSE, 0, 0);
-			GX_SetTevOp (GX_TEVSTAGE0, GX_PASSCLR);
-			GX_SetVtxDesc (GX_VA_TEX0 /* GX_VA_CLR0 */, GX_NONE);
-			return 0;
-		}
-
-		/** ^^^^^^^^^^^^ DEBUG ^^^^^^^^^^^^ **/
 		void *image;
 		int cellX, cellY, cellW, penX = 0, penY = 0;
 
 		if (should_draw) {
 			GX_SetTevOp (GX_TEVSTAGE0, GX_MODULATE);
-			GX_SetVtxDesc (GX_VA_TEX0 /* GX_VA_CLR0 */, GX_DIRECT);
+			GX_SetVtxDesc (GX_VA_TEX0, GX_DIRECT);
 			GX_SetTexCoordScaleManually(GX_TEXCOORD0, GX_TRUE, 1, 1);
 			GX_LoadTexObj(&IPL_Font.texture, GX_TEXMAP0);
 		}
@@ -174,7 +143,7 @@
 		if (should_draw) {
 			GX_SetTexCoordScaleManually(GX_TEXCOORD0, GX_FALSE, 0, 0);
 			GX_SetTevOp (GX_TEVSTAGE0, GX_PASSCLR);
-			GX_SetVtxDesc (GX_VA_TEX0 /* GX_VA_CLR0 */, GX_NONE);
+			GX_SetVtxDesc (GX_VA_TEX0, GX_NONE);
 		}
 
 		return penX;

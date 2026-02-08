@@ -1,4 +1,7 @@
 #include "hbm.h"
+#include "hbm/hbm.h"
+#include <romfs-ogc.h>
+#include <pngu.h>
 
 // static void* HBM_Thread(void *arg);
 // static lwp_t HBM_mainthread = LWP_THREAD_NULL;
@@ -41,7 +44,9 @@ static HBMButtonMain HBM_wiiMenuButton, HBM_resetButton, HBM_manualButton;
 static HBMDialog HBM_dialog;
 static HBMPointerImage HBM_pointer1, HBM_pointer2, HBM_pointer3, HBM_pointer4;
 static HBMHeader HBM_topHeader, HBM_bottomHeader;
-static HBMImage HBM_topHeaderButton, HBM_remote, HBM_remoteDataBG;
+static HBMImage HBM_topHeaderButton;
+static HBMImage HBM_remote;
+static HBMImage HBM_remoteDataBG;
 extern HBMRemoteDataSprite HBM_remoteData[4];
 static const char* HBM_topHeaderButtonText;
 
@@ -61,16 +66,17 @@ static bool HBM_backgroundCreated = false;
 
 void HBM_TakeScreenshot() {
 	if (!HBM_backgroundCreated) {
-		HBM_backgroundScreenshot = (u8 *)memalign(32, 320 * 240 * 4);
-
+		HBM_backgroundScreenshot = (u8 *)memalign(32, GX_GetTexBufferSize(HBM_Settings.Width, HBM_Settings.Height, GX_TF_RGBA8, GX_FALSE, 1));
 		if (HBM_backgroundScreenshot) {
-			GX_SetTexCopySrc(0, 0, 320, 240);
-			GX_SetTexCopyDst(320, 240, GX_TF_RGBA8, GX_FALSE);
-			DCInvalidateRange(HBM_backgroundScreenshot, 320 * 240 * 4);
+			// Copy EFB to buffer
+			GX_SetTexCopySrc(0, 0, HBM_Settings.Width, HBM_Settings.Height);
+			GX_SetTexCopyDst(HBM_Settings.Width, HBM_Settings.Height, GX_TF_RGBA8, GX_FALSE);
 			GX_CopyTex(HBM_backgroundScreenshot, GX_FALSE);
 			GX_PixModeSync();
+			DCFlushRange(HBM_backgroundScreenshot, GX_GetTexBufferSize(HBM_Settings.Width, HBM_Settings.Height, GX_TF_RGBA8, GX_FALSE, 1));
+			// DCInvalidateRange(HBM_backgroundScreenshot, HBM_Settings.Width * HBM_Settings.Height * 4);
 
-			HBM_background.LoadRaw(HBM_backgroundScreenshot, 320, 240);
+			HBM_background.LoadRaw(HBM_backgroundScreenshot, HBM_Settings.Width, HBM_Settings.Height, GX_TF_RGBA8);
 			HBM_backgroundCreated = true;
 		}
 	}
@@ -79,8 +85,10 @@ void HBM_TakeScreenshot() {
 static void HBM_FreeScreenshot() {
 	if (HBM_backgroundCreated) {
 		HBM_background.Free();
-		free(HBM_backgroundScreenshot);
-		HBM_backgroundScreenshot = NULL;
+		if (HBM_backgroundScreenshot) {
+			free(HBM_backgroundScreenshot);
+			HBM_backgroundScreenshot = NULL;
+		}
 		HBM_backgroundCreated = false;
 	}
 }
@@ -353,7 +361,6 @@ static void HBM_PromptUnimplemented()
 	HBM_dialog.AltAppearance = true;
 	HBM_dialog.UpdateText(
 		HBM_gettextmsg("This feature is currently unavailable."),
-		// "Miiがとうろくされていません。\nMii",
 		HBM_gettextmsg("OK")
 	);
 	HBM_dialog.Show();
@@ -377,9 +384,12 @@ static void HBM_PromptAbout()
  ******************************************************/
 
 static void HBM_elementPositions() {
-	HBM_wiiMenuButton.SetPosition (HBM_Settings.Widescreen ? 94 : 34, HBM_Settings.ShowManualButton ? 110 : 180);
-	HBM_resetButton.SetPosition (HBM_Settings.Widescreen ? 471 : 310, HBM_wiiMenuButton.Y);
-	HBM_manualButton.SetPosition (HBM_Settings.Widescreen ? 283 : 172, 234);
+	HBM_wiiMenuButton.X = HBM_Settings.Widescreen ? 94 : 34;
+	HBM_wiiMenuButton.Y = HBM_Settings.ShowManualButton ? 110 : 180;
+	HBM_resetButton.X = HBM_Settings.Widescreen ? 471 : 310;
+	HBM_resetButton.Y = HBM_wiiMenuButton.Y;
+	HBM_manualButton.X = HBM_Settings.Widescreen ? 283 : 172;
+	HBM_manualButton.Y = 234;
 
 	HBM_topHeader.TextX = 28.7;
 	HBM_topHeader.TextY = 67.28;
@@ -388,30 +398,31 @@ static void HBM_elementPositions() {
 }
 
 static void HBM_elementLoad() {
+	// HBM_topHeaderButton = HBM_HBMImage_create();
+	// HBM_remote = HBM_HBMImage_create();
+	// HBM_remoteDataBG = HBM_HBMImage_create();
+
 	HBM_topHeaderButton.LoadPNG(&HBM_topHeaderButton_png, 184, 48);
 	HBM_remote.LoadPNG(&HBM_remote_png, 76, 300);
 	HBM_remoteDataBG.LoadPNG(&HBM_remoteDataBG_png, 436, 32);
+
 	HBM_bottomHeader.WiiRemote = &HBM_remote;
 }
 
 static void HBM_elementFree() {
 	HBM_FreeScreenshot();
 
-	HBM_topHeaderButton.Free();
 	HBM_bottomHeader.WiiRemote = NULL;
-	HBM_remote.Free();
-	HBM_remoteDataBG.Free();
+
+	// HBM_HBMImage_destroy(&HBM_topHeaderButton);
+	// HBM_HBMImage_destroy(&HBM_remote);
+	// HBM_HBMImage_destroy(&HBM_remoteDataBG);
 }
 
 static void HBM_elementSetup() {
 	/** HBM_background **/
-	HBM_background.SetPosition(0, 0);
-	HBM_background.R = 255;
-	HBM_background.G = 255;
-	HBM_background.B = 255;
-	HBM_background.A = 255;
 	HBM_background.Visible = true;
-	// HBM_background.FixedSize = true;
+	HBM_background.FixedSize = true;
 
 	/** HBM_wiiMenuButton **/
 	HBM_wiiMenuButton.Selected = HBM_PromptSystemMenu;
@@ -495,14 +506,15 @@ void HBM_SetWidescreen(bool value) {
 }
 
 bool HBM_SetLanguage(enum HBM_LANG value) {
+	if (value >= HBM_LANG_COUNT || value < HBM_LANG_SYSTEM) value = HBM_LANG_SYSTEM;
 	if (!HBM_initialized) {
-		if (value != HBM_Settings.Language)
-			HBM_Settings.Language = value;
+		if ((int)value != HBM_Settings.Language)
+			HBM_Settings.Language = (int)value;
 	} else {
-		if (!HBM_LoadLanguage(value))
+		if (!HBM_LoadLanguage((int)value))
 			return false;
 
-		HBM_Settings.Language = (enum HBM_LANG)HBM_GetCurrentLanguage();
+		HBM_Settings.Language = HBM_GetCurrentLanguage();
 
 		// Update strings
 		// **********************
@@ -594,9 +606,7 @@ void HBM_Init(int width, int height, int host_TEVSTAGE0, int host_TEX0)
 	// Initialize the remainder of the libraries
 	HBM_SoundInit();
 	HBM_ConsoleInit();
-	#ifdef HBM_ENABLE_ROMFS
-	HBM_RomfsInit();
-	#endif
+	romfsInit();
 }
 
 void HBM_Uninit()
@@ -604,11 +614,8 @@ void HBM_Uninit()
 	if (!HBM_initialized) return;
 
 	HBM_FreeScreenshot();
-
 	HBM_FontUninit();
-	#ifdef HBM_ENABLE_ROMFS
-	HBM_RomfsUninit();
-	#endif
+	romfsExit();
 
 	HBM_initialized = false;
 }
@@ -642,7 +649,7 @@ static void HBM_Draw()
 	// Background
 	if (HBM_backgroundCreated) {
 		HBM_background.Draw();
-		// HBM_DrawQuad(0, 0, HBM_WIDTH, HBM_HEIGHT, 0, HBM_backgroundOpacity, true);
+		HBM_DrawQuad(0, 0, HBM_WIDTH, HBM_HEIGHT, 0, HBM_backgroundOpacity, true);
 	}
 
 	// Elements
@@ -742,10 +749,10 @@ static void HBM_Update()
 		HBM_pointer4.Visible = HBMPointers[3].Status > 0;
 
 		// Position based on pointer location
-		HBM_pointer1.SetPosition(HBMPointers[0].X, HBMPointers[0].Y);
-		HBM_pointer2.SetPosition(HBMPointers[1].X, HBMPointers[1].Y);
-		HBM_pointer3.SetPosition(HBMPointers[2].X, HBMPointers[2].Y);
-		HBM_pointer4.SetPosition(HBMPointers[3].X, HBMPointers[3].Y);
+		HBM_pointer1.X = HBMPointers[0].X; HBM_pointer1.Y = HBMPointers[0].Y;
+		HBM_pointer2.X = HBMPointers[1].X; HBM_pointer2.Y = HBMPointers[1].Y;
+		HBM_pointer3.X = HBMPointers[2].X; HBM_pointer3.Y = HBMPointers[2].Y;
+		HBM_pointer4.X = HBMPointers[3].X; HBM_pointer4.Y = HBMPointers[3].Y;
 
 		// Rotation based on pitch
 		HBM_pointer1.Image.Rotation = HBMPointers[0].Rotation;
@@ -762,7 +769,7 @@ static void HBM_Update()
 		HBM_TimeUpdate();
 		if (HBM_ExitTransition.Fade >= 1)
 		{
-			HBM_Settings.Status = HBM_INACTIVE;
+			HBM_Settings.Status = HBM_EXITED;
 
 			switch (HBM_ExitTransition.Type)
 			{
@@ -847,8 +854,13 @@ static void HBM_Update()
 			**********************************************************/
 			case HBM_OPENING:
 			case HBM_CLOSING:
-				if (HBM_Settings.Stage == HBM_STAGE_MAIN)
+				if ((HBM_Settings.Stage & HBM_STAGE_MAIN) == HBM_STAGE_MAIN)
 				{
+					HBM_pointer4.Update();
+					HBM_pointer3.Update();
+					HBM_pointer2.Update();
+					HBM_pointer1.Update();
+
 					// HBM_ConsolePrintf2("progress: %.3f, Top Y: %d, Bottom Y: %d", HBM_timeElapsed / 0.3333, HBM_topHeader.Y, HBM_bottomHeader.Y);
 					HBM_TimeUpdate();
 					if (HBM_timeElapsed >= 0.3333) {
@@ -959,7 +971,8 @@ static void HBM_Update()
 			**********************************************************/
 			default:
 			case HBM_CLOSED:
-				HBM_Settings.Status = HBM_INACTIVE;
+				if (fb_i == 0)
+					HBM_Settings.Status = HBM_INACTIVE;
 				return;
 		}
 	}
@@ -979,13 +992,14 @@ void HBM_Menu()
 		HBM_elementLoad();
 		HBM_elementSetup();
 		HBM_elementPositions();
-		HBM_SetLanguage(HBM_Settings.Language);
+		HBM_SetLanguage((enum HBM_LANG)HBM_Settings.Language);
 
 		// Init console
 		HBM_ConsoleClear();
 		HBM_ConsolePrintf("HBM status: Opening");
 
 		// Init video
+		fb_i = 0;
 		fb[0] = VIDEO_GetCurrentFramebuffer();
 		fb[1] = VIDEO_GetNextFramebuffer();
 		HBM_TakeScreenshot();
@@ -1022,6 +1036,11 @@ void HBM_Menu()
 			HBM_Vsync();
 
 			if (HBM_AfterDraw != NULL) HBM_AfterDraw();
+
+			if (HBM_Settings.Status == HBM_INACTIVE)
+				HBM_background.Draw(); // Draw once to avoid flicker when closing
+			else if (HBM_Settings.Status == HBM_EXITED)
+				HBM_Settings.Status = HBM_INACTIVE;
 		} while (HBM_Settings.Status != HBM_INACTIVE);
 
 		if (HBM_AfterHideMenu != NULL) HBM_AfterHideMenu();
@@ -1043,7 +1062,7 @@ void HBM_Menu()
 	else
 	{
 		HBM_noHomeIcon.LoadPNG(&HBM_noHome_png, 52, 52);
-		HBM_noHomeIcon.SetPosition(50, /*42*/54);
+		HBM_noHomeIcon.X = 50; HBM_noHomeIcon.Y = 54;
 		HBM_noHomeIcon.Visible = true;
 
 		HBM_Settings.Status = HBM_NOHOME;
@@ -1071,14 +1090,14 @@ void HBM_DrawNoHome()
 
 		HBM_timeElapsed = ((f64)HBM_GETTIME / 1000.0F) - HBM_timeStopwatch;
 
-		HBM_noHomeIcon.A = HBM_timeElapsed < 0.233 ? lround(255.0F * (HBM_timeElapsed / 0.233))
-							 : HBM_timeElapsed > 0.233 + 1.2 ? lround(255.0F * (1.0F - ((HBM_timeElapsed - 0.233 - 1.2) / 0.233)))
-							 : 255;
+		HBM_noHomeIcon.Color.A = HBM_timeElapsed < 0.233 ? lround(255.0F * (HBM_timeElapsed / 0.233))
+							   : HBM_timeElapsed > 0.233 + 1.2 ? lround(255.0F * (1.0F - ((HBM_timeElapsed - 0.233 - 1.2) / 0.233)))
+							   : 255;
 
 		if (HBM_timeElapsed >= 1.6667)
 		{
 			HBM_TimeClear();
-			HBM_noHomeIcon.A = 0;
+			HBM_noHomeIcon.Color.A = 0;
 			HBM_Settings.Status = HBM_INACTIVE;
 			HBM_noHomeIcon.Free();
 			return;

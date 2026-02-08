@@ -1,9 +1,6 @@
 #ifndef __HBM__ROMFS__
 #define __HBM__ROMFS__
 
-void HBM_RomfsInit();
-void HBM_RomfsUninit();
-
 class HBMRomfsFile {
 	protected:
 		const char* path;

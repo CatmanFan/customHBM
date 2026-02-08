@@ -1,4 +1,4 @@
-#include "hbm.h"
+#include "hbm/hbm.h"
 #include "hbm/extern.h"
 
 HBMElement::HBMElement() {
@@ -28,10 +28,13 @@ void HBMElement::Draw() {
 
 	if (this->Visible) {
 		if (this->ShadowOpacity > 0) {
-			this->Shadow.A = lround(this->Image.A * this->ShadowOpacity);
-			this->Shadow.Draw(this->X + this->Image.GetX() + (this->ShadowX * this->Scale), this->Y + this->Image.GetY() + (this->ShadowY * this->Scale));
+			this->Shadow.Color.R = 0;
+			this->Shadow.Color.G = 0;
+			this->Shadow.Color.B = 0;
+			this->Shadow.Color.A = lround(this->Image.Color.A * this->ShadowOpacity);
+			this->Shadow.Draw(this->X + this->Image.X + (this->ShadowX * this->Scale), this->Y + this->Image.Y + (this->ShadowY * this->Scale));
 		}
-		this->Image.Draw(this->X + this->Image.GetX(), this->Y + this->Image.GetY());
+		this->Image.Draw(this->X + this->Image.X, this->Y + this->Image.Y);
 	}
 }
 
@@ -43,52 +46,11 @@ void HBMElement::SetOpacity(float value) {
 	if (value <= 0) this->Visible = false;
 	else if (value >= 1) {
 		this->Visible = true;
-		this->Image.A = 255;
+		this->Image.Color.A = 255;
 	} else {
 		this->Visible = true;
-		this->Image.A = lround(255 * value);
+		this->Image.Color.A = lround(255 * value);
 	}
-}
-
-void HBMElement::SetHitbox(int w, int h) {
-	this->Hitbox.X = 0;
-	this->Hitbox.Y = 0;
-	this->Hitbox.Width = w;
-	this->Hitbox.Height = h;
-}
-
-void HBMElement::SetHitbox(int x, int y, int w, int h) {
-	this->Hitbox.X = x;
-	this->Hitbox.Y = y;
-	this->Hitbox.Width = w;
-	this->Hitbox.Height = h;
-}
-
-void HBMElement::SetHitbox2(int w, int h) {
-	this->Hitbox2.X = 0;
-	this->Hitbox2.Y = 0;
-	this->Hitbox2.Width = w;
-	this->Hitbox2.Height = h;
-}
-
-void HBMElement::SetHitbox2(int x, int y, int w, int h) {
-	this->Hitbox2.X = x;
-	this->Hitbox2.Y = y;
-	this->Hitbox2.Width = w;
-	this->Hitbox2.Height = h;
-}
-
-void HBMElement::SetPosition(int x, int y) {
-	this->X = x;
-	this->Y = y;
-}
-
-int HBMElement::GetX() {
-	return this->X;
-}
-
-int HBMElement::GetY() {
-	return this->Y;
 }
 
 bool HBMElement::HitboxTouched(int chan) {

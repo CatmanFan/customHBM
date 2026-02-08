@@ -5,7 +5,7 @@ msgid "Wii Menu"
 msgstr "Wii-meny"
 
 msgid "Reset"
-msgstr "Tilbakestill"
+msgstr "Omstart"
 
 msgid "Operations Guide"
 msgstr "Brukerveiledning"
@@ -17,7 +17,7 @@ msgid "Wii Remote Settings"
 msgstr "Wii-fjernkontrollinnstillinger"
 
 msgid "Close Wii Remote Settings"
-msgstr "Lukke Wii-fjernkontrollinnstillinger"
+msgstr "Tilbake til HOME-menyen"
 
 msgid "Volume"
 msgstr "Høytaler"
@@ -32,13 +32,13 @@ msgid "Off"
 msgstr "Av"
 
 msgid "Connection"
-msgstr "Kobling"
+msgstr "Parkobling"
 
 msgid "Reconnect"
-msgstr "Ny tilkobling"
+msgstr "Endre rekkefølge"
 
 msgid "Simultaneously press ① and ② on each Wii Remote in the desired player order."
-msgstr "Trykk ① och ② på\nWii-fjernkontrollen.\n(incomplete)"
+msgstr "Trykk ① og ② samstundes på\nhver Wii-fjernkontroll i\nønsket spillerekkefølge."
 
 msgid "Disconnecting..."
 msgstr "Kobler fra..."
@@ -47,13 +47,13 @@ msgid "Return to the Wii Menu?"
 msgstr "Gå tilbake til Wii-menyen?"
 
 msgid "Return to the Wii Menu? (Anything not saved will be lost.)"
-msgstr "Gå tilbake til Wii-menyen?\n(Ulagrede data kan slettes.)"
+msgstr "Gå tilbake til Wii-menyen?\n(All ulagret data vil gå tapt.)"
 
 msgid "Reset the software?"
-msgstr "Tilbakestille programvaren?"
+msgstr "Starte programvaren på nytt?"
 
 msgid "Reset the software? (Anything not saved will be lost.)"
-msgstr "Tilbakestille programvaren?\n(Ulagrede data kan slettes.)"
+msgstr "Starte programvaren på nytt?\n(All ulagret data vil gå tapt.)"
 
 msgid "Yes"
 msgstr "Ja"

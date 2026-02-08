@@ -10,6 +10,7 @@
 using namespace std;
 
 #include "hbm.h"
+#include "hbm/hbm.h"
 
 #ifdef WII_NETTRACE
 #include <network.h>
@@ -186,27 +187,12 @@ static bool getLangFile(char* langfile, size_t size) {
     return true;
 }
 
-#ifdef HBM_ENABLE_ROMFS
+#define HBM_LANGUAGE_ROMFS_PATH(ID) "romfs:/hbm/text/" #ID ".lang"
 
-	#define HBM_LANGUAGE_ROMFS_PATH(ID) "romfs:/hbm/text/HBM_" #ID ".lang"
-
-	#define HBM_GET_LANGUAGE(ENUM, ID, NAME)	case ENUM: \
-													if (!isSystem) HBM_ConsolePrintf("Language set to %d: %s", currentLanguage, #NAME ); \
-													file.Load( HBM_LANGUAGE_ROMFS_PATH(ID) ); \
-													return getLangFile((char *)file.Data(), file.Size());
-
-#else
-
-	#define HBM_LANGUAGE_EXTERN(ID) HBM_##ID##_lang
-	#define HBM_LANGUAGE_EXTERN_END(ID) HBM_##ID##_lang_end
-
-	#define HBM_GET_LANGUAGE(ENUM, ID, NAME)	case ENUM: \
-													if (!isSystem) HBM_ConsolePrintf("Language set to %d: %s", currentLanguage, #NAME ); \
-													extern const uint8_t HBM_LANGUAGE_EXTERN(ID)[]; \
-													extern const uint8_t HBM_LANGUAGE_EXTERN_END(ID)[]; \
-													return getLangFile((char *) HBM_LANGUAGE_EXTERN(ID), (size_t)HBM_LANGUAGE_EXTERN_END(ID) - (size_t)HBM_LANGUAGE_EXTERN(ID) );
-
-#endif
+#define HBM_GET_LANGUAGE(ENUM, ID, NAME)	case ENUM: \
+												if (!isSystem) HBM_ConsolePrintf("Language set to %d: %s", currentLanguage, #NAME ); \
+												file.Load( HBM_LANGUAGE_ROMFS_PATH(ID) ); \
+												return getLangFile((char *)file.Data(), file.Size());
 
 static int currentLanguage = -2;
 
@@ -214,11 +200,9 @@ int HBM_GetCurrentLanguage() {
 	return currentLanguage;
 }
 
-bool HBM_LoadLanguage(enum HBM_LANG lang) {
+bool HBM_LoadLanguage(int lang) {
 	if (lang != currentLanguage) {
 		bool isSystem = false;
-
-		if (lang >= HBM_LANG_COUNT || lang < HBM_LANG_SYSTEM) lang = HBM_LANG_SYSTEM;
 		currentLanguage = (int)lang;
 
 		if (lang == HBM_LANG_SYSTEM) {
@@ -281,9 +265,7 @@ bool HBM_LoadLanguage(enum HBM_LANG lang) {
 						: 0))
 			return false;
 
-		#ifdef HBM_ENABLE_ROMFS
 		HBMRomfsFile file;
-		#endif
 
 		switch (lang) {
 			default:
@@ -294,25 +276,11 @@ bool HBM_LoadLanguage(enum HBM_LANG lang) {
 			HBM_GET_LANGUAGE(HBM_LANG_SPANISH,			es,			Español)
 			HBM_GET_LANGUAGE(HBM_LANG_ITALIAN,			it,			Italiano)
 			HBM_GET_LANGUAGE(HBM_LANG_DUTCH,			nl,			Nederlands)
-
-			#ifdef HBM_ENABLE_ROMFS
 			HBM_GET_LANGUAGE(HBM_LANG_SIMP_CHINESE,		zh-Hans,	Chinese Simplified)
 			HBM_GET_LANGUAGE(HBM_LANG_TRAD_CHINESE,		zh-Hant,	Chinese Traditional)
-			#else
-			HBM_GET_LANGUAGE(HBM_LANG_SIMP_CHINESE,		zh_Hans,	Chinese Simplified)
-			HBM_GET_LANGUAGE(HBM_LANG_TRAD_CHINESE,		zh_Hant,	Chinese Traditional)
-			#endif
-
 			HBM_GET_LANGUAGE(HBM_LANG_KOREAN,			ko,			Korean)
-
-			#ifdef HBM_ENABLE_ROMFS
 			HBM_GET_LANGUAGE(HBM_LANG_PT_PORTUGUESE,	pt-PT,		Português)
 			HBM_GET_LANGUAGE(HBM_LANG_BR_PORTUGUESE,	pt-BR,		Português do Brasil)
-			#else
-			HBM_GET_LANGUAGE(HBM_LANG_PT_PORTUGUESE,	pt_PT,		Português)
-			HBM_GET_LANGUAGE(HBM_LANG_BR_PORTUGUESE,	pt_BR,		Português do Brasil)
-			#endif
-
 			HBM_GET_LANGUAGE(HBM_LANG_RUSSIAN,			ru,			Russian)
 			HBM_GET_LANGUAGE(HBM_LANG_UKRAINIAN,		uk,			Ukrainian)
 			HBM_GET_LANGUAGE(HBM_LANG_POLISH,			pl,			Polski)
@@ -338,12 +306,7 @@ bool HBM_LoadLanguage(enum HBM_LANG lang) {
 }
 
 #undef HBM_GET_LANGUAGE
-#ifdef HBM_ENABLE_ROMFS
 #undef HBM_LANGUAGE_ROMFS_PATH
-#else
-#undef HBM_LANGUAGE_EXTERN
-#undef HBM_LANGUAGE_EXTERN_END
-#endif
 
 #ifdef TRACK_UNIQUE_MSGIDS
 static const char* unique_msgids[4096];

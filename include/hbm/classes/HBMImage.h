@@ -5,51 +5,35 @@
  * This will draw an image using GX.
  **/
 class HBMImage {
-	private:
-		void InitTexObj();
-
 	protected:
-		void *Img;
-		u8 ImgFmt;
-		int ImgSize;
 		GXTexObj *TexObj;
-
-		u16 Width;
-		u16 Height;
-		f32 X;
-		f32 Y;
-		f32 AnchorPointX;
-		f32 AnchorPointY;
-		bool dynamic;
+		bool Dynamic;
 
 	public:
-		u8 R;
-		u8 G;
-		u8 B;
-		u8 A;
-		float Rotation;
-		float ScaleX;
-		float ScaleY;
+		void *Img;
+		u8 ImgFmt;
+		f32 X;
+		f32 Y;
+		u16 Width;
+		u16 Height;
+
+		struct { u8 R; u8 G; u8 B; u8 A; } Color;
+		struct { f32 X; f32 Y; } AnchorPoint;
+
+		f32 Rotation;
+		f32 ScaleX;
+		f32 ScaleY;
 		bool Visible;
 		bool FixedSize;
-
-		HBMImage();
-		~HBMImage();
 
 		void Draw(f32 xPos, f32 yPos);
 		void Draw();
 		void LoadRaw(const void *img, u16 width, u16 height, u8 fmt = GX_TF_RGBA8);
 		void LoadPNG(const void *img, int width, int height);
 		void Free();
-		void SetPosition(f32 x, f32 y);
-		void SetAnchorPoint(f32 x, f32 y);
 
-		void* GetImage();
-		u8 GetImageFormat();
-		u16 GetX();
-		u16 GetY();
-		u16 GetWidth();
-		u16 GetHeight();
+		HBMImage();
+		~HBMImage();
 };
 
 #endif
