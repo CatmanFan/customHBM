@@ -6,7 +6,7 @@ Originally a fork of [libhomemenu](https://github.com/TheProjecter/libhomemenu) 
 It contains derived portions of code from the original libhomemenu (license unknown, original source code is attributed above) translated into C++, however the majority of code has been rewritten from scratch. The project also uses portions of code from [Tantric/dborth](https://github.com/dborth)'s [libwiigui](https://github.com/dborth/libwiigui) ([WiiBrew page](http://wiibrew.org/wiki/Libwiigui)), which is licensed under GNU GPL, as well as derived code of [GRRLIB](https://github.com/GRRLIB/GRRLIB)'s (licensed under MIT) TTF drawing functions. I have chosen to license this project under GNU GPL as it is also the same license used in Tantric/dborth's software (Snes9XGX, FCEUGX, VBAGX, WiiMC, ...) as well as in [WiiSXRX](https://github.com/niuus/WiiSXRX) (as GPL-3.0) and [Not64](https://github.com/extremscorner/not64) (as GPL-2.0).
 
 ## Installation
-See **Wiki** for instructions.
+See **[Wiki](https://github.com/CatmanFan/customHBM/wiki)** for instructions.
 
 ## Screenshots
 
